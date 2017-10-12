@@ -60,7 +60,10 @@ class client:
 			# ====================================================
 			# Uncomment this section for Raspberry Pi integration
 			# Obtain action, current and voltage from prediction.py
+			'''
+			# Uncomment this section if values are directly fed from prediction.py
 			# action = results
+			'''
 			'''
 			# Uncomment this section if performing file reading
 			# TODO: Check if file has changed since previous results if not wait until new file exists
@@ -111,16 +114,19 @@ class client:
 		#4. All done, logout.
 		self.sock.close()
 		sys.exit()
-			
-#if len(sys.argv) != 3:
-#	print('Invalid number of arguments')
-#	print('python client.py [IP address] [Port]')
-#	sys.exit()
 
-#ip_addr = sys.argv[1]
-#port_num = int(sys.argv[2])
+'''		
+# Uncomment this section for client.py testing
+if len(sys.argv) != 3:
+	print('Invalid number of arguments')
+	print('python client.py [IP address] [Port]')
+	sys.exit()
 
-#my_client = client(ip_addr, port_num)
+ip_addr = sys.argv[1]
+port_num = int(sys.argv[2])
+
+my_client = client(ip_addr, port_num)
+'''
 
 def createClient(ip_addr, port_num):
 	myclient = client(ip_addr, port_num)

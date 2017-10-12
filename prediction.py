@@ -80,7 +80,10 @@ def check_results(y):
 
 def send_server(results):
 	# Results should contain action, current and voltage data
+	#
 	# Save results in .csv file for client.py to read
+	# OR
+	# Pass values directly to client.py
 	#
 	# List of actions available in client.py
 	# Send an integer to invoke the following actions:
