@@ -1,1 +1,3 @@
 pythonenv/
+data/
+__pycache__/
