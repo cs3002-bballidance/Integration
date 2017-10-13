@@ -1,4 +1,4 @@
-
+import logging
 import pandas as pd
 import numpy as np
 import butterworth
@@ -9,9 +9,7 @@ from scipy.stats import kurtosis, skew
 from keras.models import load_model
 from keras.models import Sequential
 
-
-
-
+logger = logging.getLogger(__name__)
 
 data_filepath = 'data/sample_data_format.csv' #mega_data.csv
 model_filepath = 'data/har_rnn_lstm.h5'
@@ -22,7 +20,6 @@ neutral_position = 0
 order = 6       # Order 6
 fs = 40       # sample rate, Hz
 cutoff = 5    # desired cutoff frequency of the filter in Hz (take max/60)
-
 
 def get_data(filename, numlines):
 	size = sum(1 for l in open(filename))
@@ -71,10 +68,9 @@ def feature_selection(X):
 
 def check_results(y):
 	np.set_printoptions(formatter={'float_kind':'{:f}'.format})
-	print('Probabilities')
-	print(y)
+	logger.debug('Probabilities: {}'.format(y))
 	y_pred = np.argmax(y, axis=1)
-	print('Predicted output: ', y_pred)
+	logger.debug('Predicted output: {}'.format(y_pred))
 	return ((y_pred != neutral_position) and (y[0][y_pred] > prediction_threshold)), y_pred
 
 
@@ -104,13 +100,15 @@ def init(modelname):
 	return get_model(modelname)
 
 def main_loop():
+	logger.info('Starting {}'.format(__file__))
+
 	model = init(model_filepath)
 	sleep(0.8)
 	while True:
 		sleep(waiting_time)
 		data = get_data(data_filepath, readings)
 		with pd.option_context('display.max_rows', None, 'display.max_columns', 3):
-			print(data)
+			logger.debug(data)
 		filtered_data = apply_filter(data)
 		X = feature_selection(filtered_data)
 		y = model.predict(X)
@@ -119,12 +117,5 @@ def main_loop():
 			send_server(results)
 		break #remove in actual code
 
-
-
-
-
-
-
-
-
-
+if __name__ == '__main__':
+	main_loop()

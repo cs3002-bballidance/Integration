@@ -4,7 +4,7 @@ from Crypto.Cipher import AES
 # To be added after integration with prediction.py
 # from prediction import results
 # ==================================================
-
+import logging
 import base64
 import socket
 import sys
@@ -14,16 +14,23 @@ import random
 import time
 # ==================================================
 
+logger = logging.getLogger(__name__)
+KEY_DIR = '/media/pi'
+
 class client:
 	def __init__(self, ip_addr, port_num):
 		# Create TCP/IP socket
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 		# Connect to server
-		server_address = (ip_addr, port_num)
-		print('Initiating connection to %s port %s' % server_address, file=sys.stderr)
-		self.sock.connect(server_address)
-		print('Connected to %s port %s' % server_address, file=sys.stderr)
+		try:
+			server_address = (ip_addr, port_num)
+			logger.info('Initiating connection to {} port {}'.format(ip_addr, port_num))
+			self.sock.connect(server_address)
+		except Exception as e:
+			logger.critical('Exception occured: {}'.format(e))
+			exit(1)
+		logger.info('Connected to {} port {}'.format(ip_addr, port_num))
 			
 		# Obtain secret key from local key file
 		# TODO: Encode secret_key in key file then perform decode operations
@@ -36,7 +43,7 @@ class client:
 		# Obtain secret key from thumbdrive in Raspberry Pi
 		'''
 		secret_key = ' '
-		for root, dirs, files in os.walk('/media/pi'):
+		for root, dirs, files in os.walk(KEY_DIR):
 			if 'key' in files:
 				if os.access(join(root, 'key'), os.R_OK):
 					with open(join(root, 'key')) as key:
@@ -89,12 +96,12 @@ class client:
 			current_str = str(round(current, 2))
 			power_str = str(round(power,2))
 			cumulativepower_list.append(power)
-			#print("cumulativepower List : ", cumulativepower_list)
+			#logger.debug("cumulativepower List : {}".format(cumulativepower_list))
 			cumulativepower_list_avg = float(sum(cumulativepower_list) / len(cumulativepower_list))
 			
 			#1b. Assemble message
 			msg = b'#' + b'|'.join([self.actions[action].encode(), voltage_str.encode(), current_str.encode(), power_str.encode(), str(round(cumulativepower_list_avg, 2)).encode()]) + b'|'
-			print('unencrypted msg: ', msg)
+			logger.debug('unencrypted msg: {}'.format(msg))
 
 			#2. Encrypt readings
 			#2a. Apply padding
@@ -105,28 +112,38 @@ class client:
 			iv = Random.new().read(AES.block_size)
 			cipher = AES.new(secret_key.encode(), AES.MODE_CBC, iv)
 			encodedMsg = base64.b64encode(iv + cipher.encrypt(msg))
-			print('encrypted msg:   ', encodedMsg)
+			logger.debug('encrypted msg: {}'.format(encodedMsg))
 
 			#3. Send data packet over
-			print('sending msg')
+			logger.info('sending msg')
 			self.sock.sendall(encodedMsg)
 		
 		#4. All done, logout.
 		self.sock.close()
 		sys.exit()
 
-'''		
-# Uncomment this section for client.py testing
-if len(sys.argv) != 3:
-	print('Invalid number of arguments')
-	print('python client.py [IP address] [Port]')
-	sys.exit()
-
-ip_addr = sys.argv[1]
-port_num = int(sys.argv[2])
-
-my_client = client(ip_addr, port_num)
-'''
 
 def createClient(ip_addr, port_num):
 	myclient = client(ip_addr, port_num)
+
+def main():
+	logger.info('Starting {}'.format(__file__))
+	# Uncomment this section for client.py testing
+
+	if len(sys.argv) != 3:
+	        logger.critical('Invalid number of arguments')
+	        #print('python client.py [IP address] [Port]')
+	        sys.exit()
+
+	ip_addr = sys.argv[1]
+	port_num = int(sys.argv[2])
+
+	try:
+		my_client = client(ip_addr, port_num)
+	#except TimeoutError:
+	#	logger.critical('Timeout error on connection to server')
+	except Exception as e:
+		logger.critical('Exception occured: {}'.format(e))
+
+if __name__ == '__main__':
+	main()

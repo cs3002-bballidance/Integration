@@ -13,12 +13,15 @@ def start_running():
 	ACK_PKT = bytes.fromhex("DDCC")
 	ERR_PKT = bytes.fromhex("DDFD")
 	RESET_PIN = 17
-	LOG_FILENAME = '/script/Production/logs/mega_pi.log'
+	#LOG_FILENAME = '/script/Production/logs/mega_pi.log'
+	#LOG_FILENAME = 'mega_pi.log'
 	DURATION = 120
+	SERIAL_PORT = '/dev/ttyAMA0'
+	BAUDRATE = 57600
 
 	logger = logging.getLogger(__name__)
-	logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',filename=LOG_FILENAME,level=logging.INFO)
-	logger.setLevel(logging.DEBUG)
+	#logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',filename=LOG_FILENAME,level=logging.INFO)
+	#logger.setLevel(logging.DEBUG)
 	logger.info('Starting {}'.format(__file__))
 
 	#instantiate GPIO
@@ -29,13 +32,20 @@ def start_running():
 	GPIO.output(RESET_PIN,GPIO.HIGH) # pull low then back to high to reset arduino
 
 	#instantiate serial
-	logger.info('Initializing serial interface')
-	ser = serial.Serial('/dev/ttyAMA0',57600)
-	GPIO.output(RESET_PIN,GPIO.LOW)
-	ser.flushInput() # flush any existing serial buffer
-	logger.info('Resetting arduino before resuming')
-	time.sleep(1) # sleep for 1 second before pulling the pin back to high
-	GPIO.output(RESET_PIN,GPIO.HIGH)
+	try:
+		logger.info('Initializing serial interface')
+		ser = serial.Serial(SERIAL_PORT,BAUDRATE)
+		GPIO.output(RESET_PIN,GPIO.LOW)
+		ser.flushInput() # flush any existing serial buffer
+		logger.info('Resetting arduino before resuming')
+		time.sleep(1) # sleep for 1 second before pulling the pin back to high
+		GPIO.output(RESET_PIN,GPIO.HIGH)
+	except serial.serialutil.SerialException:
+		logger.critical('Unable to open serial port: {}'.format(SERIAL_PORT))
+		sys.exit(1)
+	except Exception as e:
+		logger.critical('Exception occured: {}'.format(e))
+		sys.exit(1)
 
 	with open('mega_data.csv', 'w') as csvfile:
 	    fieldnames = ['acc1x', 'acc1y', 'acc1z', 'acc2x', 'acc2y', 'acc2z', 'acc3x', 'acc3y', 'acc3z', 'curr', 'volt']
@@ -118,3 +128,6 @@ def start_running():
 	ser.close()
 	logger.info('Exiting {}'.format(__file__))
 	sys.exit()
+
+if __name__ == '__main__':
+	start_running()
