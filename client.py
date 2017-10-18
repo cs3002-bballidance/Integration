@@ -74,54 +74,54 @@ class client:
 				current = MEAN_CURRENT
 				voltage = MEAN_VOLTAGE
 
-			'''
-			# Uncomment this section if performing file reading
-			# TODO: Check if file has changed since previous results if not wait until new file exists
-			with open('send_server') as send_server:
-				predicted_results = send_server.read()
-				# TODO: predicted_results split into action, current and voltage
-				send_server.closed
-			'''	
-			# ====================================================
-			
-			# ===================================================
-			# Generates random data for testing purposes
-			# Expecting an integer for predicted action
-			#time.sleep(5)
-			#action = random.randrange(0, 10)
-			#current = random.uniform(0, 3)
-			#voltage = random.uniform(0, 5)
-			# ===================================================
-			
-			#1a. Calculates average power since first reading
-			power = voltage * current
-			voltage_str = str(round(voltage, 2))
-			current_str = str(round(current, 2))
-			power_str = str(round(power,2))
-			cumulativepower_list.append(power)
-			#logger.debug("cumulativepower List : {}".format(cumulativepower_list))
-			cumulativepower_list_avg = float(sum(cumulativepower_list) / len(cumulativepower_list))
-			
-			#1b. Assemble message
-			msg = b'#' + b'|'.join([self.actions[action].encode(), voltage_str.encode(), current_str.encode(), power_str.encode(), str(round(cumulativepower_list_avg, 2)).encode()]) + b'|'
-			logger.debug('unencrypted msg: {}'.format(msg))
+				'''
+				# Uncomment this section if performing file reading
+				# TODO: Check if file has changed since previous results if not wait until new file exists
+				with open('send_server') as send_server:
+					predicted_results = send_server.read()
+					# TODO: predicted_results split into action, current and voltage
+					send_server.closed
+				'''	
+				# ====================================================
+				
+				# ===================================================
+				# Generates random data for testing purposes
+				# Expecting an integer for predicted action
+				#time.sleep(5)
+				#action = random.randrange(0, 10)
+				#current = random.uniform(0, 3)
+				#voltage = random.uniform(0, 5)
+				# ===================================================
+				
+				#1a. Calculates average power since first reading
+				power = voltage * current
+				voltage_str = str(round(voltage, 2))
+				current_str = str(round(current, 2))
+				power_str = str(round(power,2))
+				cumulativepower_list.append(power)
+				#logger.debug("cumulativepower List : {}".format(cumulativepower_list))
+				cumulativepower_list_avg = float(sum(cumulativepower_list) / len(cumulativepower_list))
+				
+				#1b. Assemble message
+				msg = b'#' + b'|'.join([self.actions[action].encode(), voltage_str.encode(), current_str.encode(), power_str.encode(), str(round(cumulativepower_list_avg, 2)).encode()]) + b'|'
+				logger.debug('unencrypted msg: {}'.format(msg))
 
-			#2. Encrypt readings
-			#2a. Apply padding
-			length = 16 - (len(msg) % 16)
-			msg += bytes([length])*length
-			
-			#2b. Apply AES-CBC encryption
-			iv = Random.new().read(AES.block_size)
-			cipher = AES.new(secret_key.encode(), AES.MODE_CBC, iv)
-			encodedMsg = base64.b64encode(iv + cipher.encrypt(msg))
-			logger.debug('encrypted msg: {}'.format(encodedMsg))
+				#2. Encrypt readings
+				#2a. Apply padding
+				length = 16 - (len(msg) % 16)
+				msg += bytes([length])*length
+				
+				#2b. Apply AES-CBC encryption
+				iv = Random.new().read(AES.block_size)
+				cipher = AES.new(secret_key.encode(), AES.MODE_CBC, iv)
+				encodedMsg = base64.b64encode(iv + cipher.encrypt(msg))
+				logger.debug('encrypted msg: {}'.format(encodedMsg))
 
-			#3. Send data packet over
-			logger.info('sending msg')
-			self.sock.sendall(encodedMsg)
-			#3a. Assert false once data has been sent
-			SEND_TO_SERVER = false
+				#3. Send data packet over
+				logger.info('sending msg')
+				self.sock.sendall(encodedMsg)
+				#3a. Assert false once data has been sent
+				SEND_TO_SERVER = False
 		
 		#4. All done, logout.
 		self.sock.close()
