@@ -2,7 +2,8 @@ from Crypto import Random
 from Crypto.Cipher import AES
 # ==================================================
 # To be added after integration with prediction.py
-# from prediction import results
+from prediction import send_server
+from prediction import SEND_TO_SERVER
 # ==================================================
 import logging
 import base64
@@ -10,8 +11,8 @@ import socket
 import sys
 # ==================================================
 # To be removed after integration with prediction.py
-import random
-import time
+#import random
+#import time
 # ==================================================
 
 logger = logging.getLogger(__name__)
@@ -63,14 +64,16 @@ class client:
 		while action != 0:
 			#1. Get action, current and voltage from prediction.py
 			# TODO: Capture action, current and voltage from prediction.py
-			
-			# ====================================================
-			# Uncomment this section for Raspberry Pi integration
-			# Obtain action, current and voltage from prediction.py
-			'''
-			# Uncomment this section if values are directly fed from prediction.py
-			# action = results
-			'''
+			while (SEND_TO_SERVER):
+				# ====================================================
+				# Uncomment this section for Raspberry Pi integration
+				# Obtain action, current and voltage from prediction.py
+				
+				# Uncomment this section if values are directly fed from prediction.py
+				action = RESULT
+				current = MEAN_CURRENT
+				voltage = MEAN_VOLTAGE
+
 			'''
 			# Uncomment this section if performing file reading
 			# TODO: Check if file has changed since previous results if not wait until new file exists
@@ -84,10 +87,10 @@ class client:
 			# ===================================================
 			# Generates random data for testing purposes
 			# Expecting an integer for predicted action
-			time.sleep(5)
-			action = random.randrange(0, 10)
-			current = random.uniform(0, 3)
-			voltage = random.uniform(0, 5)
+			#time.sleep(5)
+			#action = random.randrange(0, 10)
+			#current = random.uniform(0, 3)
+			#voltage = random.uniform(0, 5)
 			# ===================================================
 			
 			#1a. Calculates average power since first reading
@@ -117,6 +120,8 @@ class client:
 			#3. Send data packet over
 			logger.info('sending msg')
 			self.sock.sendall(encodedMsg)
+			#3a. Assert false once data has been sent
+			SEND_TO_SERVER = false
 		
 		#4. All done, logout.
 		self.sock.close()
