@@ -1,7 +1,7 @@
 
 import pandas as pd
 import numpy as np
-import logging
+import logging, sys
 import csv
 import butterworth
 from collections import deque
@@ -11,7 +11,7 @@ from scipy.stats import kurtosis, skew
 from keras.models import load_model
 from keras.models import Sequential
 
-logger = logging.getLogger(__name__)
+logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
 
 DATAPATH = 'data/mega_data.csv' #mega_data.csv
@@ -126,14 +126,14 @@ def feature_selection(X):
 def check_results(y):
 	global RESULT
 	np.set_printoptions(formatter={'float_kind':'{:f}'.format})
-	logger.debug('Probabilities:', y)
-	print("Probabilities: {}".format(y))
+	logging.debug("Probabilities: {}".format(y))
+	#print("Probabilities: {}".format(y))
 	y_pred = np.argmax(y, axis=1)[0]
-	#logger.debug('Predicted output: ', y_pred)
-	print("Prediction: {}".format(y_pred))
+	#logging.debug('Predicted output: ', y_pred)
+	#print("Prediction: {}".format(y_pred))
 	send_result = (RESULT == y_pred) and (y_pred != NATURAL_MOVE) and (y[0][y_pred] > PREDICTION_THRESHOLD)
 	RESULT = y_pred
-	print(send_result)
+	#print(send_result)
 	return send_result, y_pred
 
 def prepare_results(result, power_data):
@@ -142,8 +142,8 @@ def prepare_results(result, power_data):
 	MEAN_VOLTAGE = power_data[0]
 	MEAN_CURRENT = power_data[1]
 	SEND_TO_SERVER = True
-	logger.debug(RESULT, ' ', MEAN_VOLTAGE, ' ', MEAN_CURRENT)
-	print("Result: {} {} {} {}".format(COUNT, RESULT, MEAN_VOLTAGE, MEAN_CURRENT))
+	#print("Result: {} {} {} {}".format(COUNT, RESULT, MEAN_VOLTAGE, MEAN_CURRENT))
+	logging.debug("Result: {} {} {} {}".format(COUNT, RESULT, MEAN_VOLTAGE, MEAN_CURRENT))
 	COUNT = COUNT + 1
 
 	results = [RESULT, MEAN_VOLTAGE, MEAN_CURRENT]
@@ -160,7 +160,7 @@ def init(modelname):
 	return get_model(modelname)
 
 def main_loop():
-	logger.info('Starting {}'.format(__file__))
+	logging.info('Starting {}'.format(__file__))
 
 	model = init(MODELPATH)
 	sleep(WINDOW_SIZE)
@@ -168,7 +168,7 @@ def main_loop():
 		sleep(WAITING_TIME)
 		data, power_data = get_data(DATAPATH, WINDOW_READINGS)
 		#with pd.option_context('display.max_rows', None, 'display.max_columns', 3):
-			#logger.debug(data)
+			#logging.debug(data)
 		filtered_data = apply_filter(data, CUTOFF, FILTER_SAMPLING_RATE, ORDER)
 		#X = feature_selection(filtered_data)
 		X = reshape_data(filtered_data)
