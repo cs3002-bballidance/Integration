@@ -47,7 +47,7 @@ def start_running():
 		logger.critical('Exception occured: {}'.format(e))
 		sys.exit(1)
 
-	with open('mega_data.csv', 'w') as csvfile:
+	with open('data/mega_data.csv', 'w') as csvfile:
 	    fieldnames = ['acc1x', 'acc1y', 'acc1z', 'acc2x', 'acc2y', 'acc2z', 'acc3x', 'acc3y', 'acc3z', 'curr', 'volt']
 	    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 	    writer.writeheader()
