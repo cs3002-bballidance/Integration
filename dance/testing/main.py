@@ -1,11 +1,12 @@
 from multiprocessing import Process
 import logging
 import prediction
-import mega_pi_integrated
+#import mega_pi_integrated
 import client
+import os
 
-def mega_process():
-	mega_pi_integrated.start_running()
+#def mega_process():
+	#mega_pi_integrated.start_running()
 
 def prediction_process():
 	prediction.main_loop()
@@ -15,7 +16,8 @@ def client_process():
 
 
 if __name__ == '__main__':
-	LOG_FILENAME = '/home/hazmei/Documents/git/CG3002/Integration/bballiPi.log'
+	#LOG_FILENAME = '/home/hazmei/Documents/git/CG3002/Integration/bballiPi.log'
+	LOG_FILENAME = 'test.log'
 
 	logger = logging.getLogger(__name__)
 	logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',filename=LOG_FILENAME,level=logging.INFO)
@@ -37,9 +39,9 @@ if __name__ == '__main__':
 		jobs.append(p)
 		p.start()
 
-		p = Process(target=mega_process)
-		jobs.append(p)
-		p.start()
+		#p = Process(target=mega_process)
+		#jobs.append(p)
+		#p.start()
 
 		for proc in jobs:
 			proc.join()

@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 import logging
+import csv
 import butterworth
 from collections import deque
 from io import StringIO
@@ -14,11 +15,12 @@ logger = logging.getLogger(__name__)
 
 
 DATAPATH = 'data/mega_data.csv' #mega_data.csv
+RESULT_DATAPATH = 'data/results.csv'
 MODELPATH = 'data/trained_nn_model.h5'
 SAMPLING_RATE = 50
 WINDOW_SIZE = 2
 WINDOW_READINGS = int(WINDOW_SIZE * SAMPLING_RATE)
-WAITING_TIME = 2*0.5 #50% OVERLAPPING
+WAITING_TIME = 2*0.7 #30% OVERLAPPING
 PREDICTION_THRESHOLD = 0.8
 NATURAL_MOVE = 0
 CLOSING_MOVE = 11 
@@ -31,6 +33,7 @@ SEND_TO_SERVER = False
 RESULT = 0
 MEAN_VOLTAGE = 0
 MEAN_CURRENT = 0
+COUNT = 0
 
 
 
@@ -121,19 +124,33 @@ def feature_selection(X):
 
 
 def check_results(y):
+	global RESULT
 	np.set_printoptions(formatter={'float_kind':'{:f}'.format})
 	logger.debug('Probabilities:', y)
-	y_pred = np.argmax(y, axis=1)
+	print("Probabilities: {}".format(y))
+	y_pred = np.argmax(y, axis=1)[0]
 	#logger.debug('Predicted output: ', y_pred)
-	return ((y_pred != NATURAL_MOVE) and (y[0][y_pred] > PREDICTION_THRESHOLD)), y_pred
+	print("Prediction: {}".format(y_pred))
+	send_result = (RESULT == y_pred) and (y_pred != NATURAL_MOVE) and (y[0][y_pred] > PREDICTION_THRESHOLD)
+	RESULT = y_pred
+	print(send_result)
+	return send_result, y_pred
 
 def prepare_results(result, power_data):
+	global COUNT
 	power_data = np.mean(power_data)
-	RESULT = result
 	MEAN_VOLTAGE = power_data[0]
 	MEAN_CURRENT = power_data[1]
 	SEND_TO_SERVER = True
 	logger.debug(RESULT, ' ', MEAN_VOLTAGE, ' ', MEAN_CURRENT)
+	print("Result: {} {} {} {}".format(COUNT, RESULT, MEAN_VOLTAGE, MEAN_CURRENT))
+	COUNT = COUNT + 1
+
+	results = [RESULT, MEAN_VOLTAGE, MEAN_CURRENT]
+
+	with open(RESULT_DATAPATH, 'a') as csvfile:
+		w = csv.writer(csvfile)
+		w.writerow(results)
 
 def send_server():
 	#result, mean voltage, mean current`
