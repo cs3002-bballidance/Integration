@@ -1,7 +1,7 @@
 
 import pandas as pd
 import numpy as np
-import logging, sys
+import logging
 import csv
 import butterworth
 from collections import deque
@@ -11,16 +11,13 @@ from scipy.stats import kurtosis, skew
 from keras.models import load_model
 from keras.models import Sequential
 
-logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
-
-
 DATAPATH = 'data/mega_data.csv' #mega_data.csv
 RESULT_DATAPATH = 'data/results.csv'
 MODELPATH = 'data/trained_nn_model.h5'
 SAMPLING_RATE = 50
 WINDOW_SIZE = 2
 WINDOW_READINGS = int(WINDOW_SIZE * SAMPLING_RATE)
-WAITING_TIME = 2*0.7 #30% OVERLAPPING
+WAITING_TIME = 5 #30% OVERLAPPING
 PREDICTION_THRESHOLD = 0.8
 NATURAL_MOVE = 0
 CLOSING_MOVE = 11 
@@ -35,10 +32,9 @@ MEAN_VOLTAGE = 0
 MEAN_CURRENT = 0
 COUNT = 0
 
-
-
 def get_data(filename, numlines):
 	size = sum(1 for l in open(filename))
+	logging.debug("size: {}".format(size))
 	data = pd.read_csv(filename, nrows=numlines, skiprows=range(0, size-numlines-1))
 	return data.iloc[:, 0:9], data.iloc[:, 9:11]
 
@@ -126,14 +122,11 @@ def feature_selection(X):
 def check_results(y):
 	global RESULT
 	np.set_printoptions(formatter={'float_kind':'{:f}'.format})
-	logging.debug("Probabilities: {}".format(y))
-	#print("Probabilities: {}".format(y))
+	logging.info("Probabilities: {}".format(y))
 	y_pred = np.argmax(y, axis=1)[0]
 	#logging.debug('Predicted output: ', y_pred)
-	#print("Prediction: {}".format(y_pred))
 	send_result = (RESULT == y_pred) and (y_pred != NATURAL_MOVE) and (y[0][y_pred] > PREDICTION_THRESHOLD)
 	RESULT = y_pred
-	#print(send_result)
 	return send_result, y_pred
 
 def prepare_results(result, power_data):
@@ -142,13 +135,12 @@ def prepare_results(result, power_data):
 	MEAN_VOLTAGE = power_data[0]
 	MEAN_CURRENT = power_data[1]
 	SEND_TO_SERVER = True
-	#print("Result: {} {} {} {}".format(COUNT, RESULT, MEAN_VOLTAGE, MEAN_CURRENT))
-	logging.debug("Result: {} {} {} {}".format(COUNT, RESULT, MEAN_VOLTAGE, MEAN_CURRENT))
+	logging.info("Result: {} {} {} {}".format(COUNT, RESULT, MEAN_VOLTAGE, MEAN_CURRENT))
 	COUNT = COUNT + 1
 
 	results = [RESULT, MEAN_VOLTAGE, MEAN_CURRENT]
 
-	with open(RESULT_DATAPATH, 'a') as csvfile:
+	with open(RESULT_DATAPATH, 'w') as csvfile:
 		w = csv.writer(csvfile)
 		w.writerow(results)
 
@@ -180,11 +172,3 @@ def main_loop():
 
 if __name__ == '__main__':
 	main_loop()
-
-
-
-
-
-
-
-

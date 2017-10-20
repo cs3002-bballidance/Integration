@@ -13,15 +13,12 @@ def start_running():
 	ACK_PKT = bytes.fromhex("DDCC")
 	ERR_PKT = bytes.fromhex("DDFD")
 	RESET_PIN = 17
-	#LOG_FILENAME = '/script/Production/logs/mega_pi.log'
-	#LOG_FILENAME = 'mega_pi.log'
 	DURATION = 120
 	SERIAL_PORT = '/dev/ttyAMA0'
+	CSV_DIR = 'data/mega_data.csv'
 	BAUDRATE = 57600
 
 	logger = logging.getLogger(__name__)
-	#logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',filename=LOG_FILENAME,level=logging.INFO)
-	#logger.setLevel(logging.DEBUG)
 	logger.info('Starting {}'.format(__file__))
 
 	#instantiate GPIO
@@ -47,9 +44,9 @@ def start_running():
 		logger.critical('Exception occured: {}'.format(e))
 		sys.exit(1)
 
-	with open('data/mega_data.csv', 'w') as csvfile:
+	with open(CSV_DIR, 'w') as csvfile:
 	    fieldnames = ['acc1x', 'acc1y', 'acc1z', 'acc2x', 'acc2y', 'acc2z', 'acc3x', 'acc3y', 'acc3z', 'curr', 'volt']
-	    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+	    writer = csv.DictWriter(csvfile, extrasaction='ignore', fieldnames=fieldnames)
 	    writer.writeheader()
         
 	    #initialize communications
@@ -72,8 +69,8 @@ def start_running():
 	            time.sleep(1)
 	    
 	    #start timer
-	    startTime = time.time()
-	    endTime = time.time()
+	    # startTime = time.time()
+	    # endTime = time.time()
 
 	    count = 0
 	    #wait for data
@@ -119,9 +116,9 @@ def start_running():
 	            count = count + 1
 	        #3. update timer
 	        endTime = time.time()
-	    logger.debug('startTime: {}'.format(startTime))
-	    logger.debug('endTime: {}'.format(endTime))
-	    logger.debug('duration: {} secs'.format(int(endTime - startTime)))
+	    # logger.debug('startTime: {}'.format(startTime))
+	    # logger.debug('endTime: {}'.format(endTime))
+	    # logger.debug('duration: {} secs'.format(int(endTime - startTime)))
 	    logger.debug('data collected: {}'.format(count))
 
 	#All done
