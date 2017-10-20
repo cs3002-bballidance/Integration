@@ -1,21 +1,15 @@
+from collections import defaultdict
 from Crypto import Random
 from Crypto.Cipher import AES
-# ==================================================
-# To be added after integration with prediction.py
-# from prediction import results
-# ==================================================
+
+import csv
 import logging
 import base64
 import socket
 import sys
-# ==================================================
-# To be removed after integration with prediction.py
-import random
-import time
-# ==================================================
 
 logger = logging.getLogger(__name__)
-KEY_DIR = '/media/pi'
+KEY_DIR = '/script/Production/dance/testing/'
 
 class client:
 	def __init__(self, ip_addr, port_num):
@@ -58,51 +52,40 @@ class client:
 						'jumpingjack', 'turnclap', 'squatturnclap', 'windowcleaning', 'windowcleaner360']
 		action = ''
 		cumulativepower_list = []
+		cumulativepower_list_avg = 0
 
 		# Send data until logout action is recieved
 		while action != 0:
 			#1. Get action, current and voltage from prediction.py
-			# TODO: Capture action, current and voltage from prediction.py
+			# TODO: Check if file has changed since previous results if not wait until new file exists			
+			columns = defaultdict(list)
 			
-			# ====================================================
-			# Uncomment this section for Raspberry Pi integration
-			# Obtain action, current and voltage from prediction.py
-			'''
-			# Uncomment this section if values are directly fed from prediction.py
-			# action = results
-			'''
-			'''
-			# Uncomment this section if performing file reading
-			# TODO: Check if file has changed since previous results if not wait until new file exists
-			with open('send_server') as send_server:
-				predicted_results = send_server.read()
-				# TODO: predicted_results split into action, current and voltage
-				send_server.closed
-			'''	
-			# ====================================================
+			with open('/data/results.csv', newline='') as csvfile:
+				predicted_results = csv.reader(csvfile, delimiter=',', quotechar='|')
+				for row in predicted_results:
+					for(col,val) in enumerate(row):
+						columns[col].append(val)
 			
-			# ===================================================
-			# Generates random data for testing purposes
-			# Expecting an integer for predicted action
-			time.sleep(5)
-			action = random.randrange(0, 10)
-			current = random.uniform(0, 3)
-			voltage = random.uniform(0, 5)
-			# ===================================================
+			action = int(columns[0][len(columns[0])-1])
+			current = float(columns[1][len(columns[1])-1])
+			voltage = float(columns[2][len(columns[2])-1])
+			# Necessary to prevent overflow of msg from being flooded to encrypt
+			time.sleep(1)
 			
 			#1a. Calculates average power since first reading
 			power = voltage * current
-			voltage_str = str(round(voltage, 2))
-			current_str = str(round(current, 2))
-			power_str = str(round(power,2))
-			cumulativepower_list.append(power)
+			voltage_str = str(voltage)
+			current_str = str(current)
+			power_str = str(power)
+			cumulativepower_list.append(power) 
 			#logger.debug("cumulativepower List : {}".format(cumulativepower_list))
 			cumulativepower_list_avg = float(sum(cumulativepower_list) / len(cumulativepower_list))
 			
 			#1b. Assemble message
-			msg = b'#' + b'|'.join([self.actions[action].encode(), voltage_str.encode(), current_str.encode(), power_str.encode(), str(round(cumulativepower_list_avg, 2)).encode()]) + b'|'
-			logger.debug('unencrypted msg: {}'.format(msg))
-
+			msg = b'#' + b'|'.join([self.actions[action].encode(), voltage_str.encode(), current_str.encode(), power_str.encode(), str(cumulativepower_list_avg).encode()]) + b'|'
+			#logger.debug('unencrypted msg: {}'.format(msg))
+			print(msg)
+			
 			#2. Encrypt readings
 			#2a. Apply padding
 			length = 16 - (len(msg) % 16)
@@ -112,12 +95,12 @@ class client:
 			iv = Random.new().read(AES.block_size)
 			cipher = AES.new(secret_key.encode(), AES.MODE_CBC, iv)
 			encodedMsg = base64.b64encode(iv + cipher.encrypt(msg))
-			logger.debug('encrypted msg: {}'.format(encodedMsg))
-
+			#logger.debug('encrypted msg: {}'.format(encodedMsg))
+			
 			#3. Send data packet over
 			logger.info('sending msg')
 			self.sock.sendall(encodedMsg)
-		
+			
 		#4. All done, logout.
 		self.sock.close()
 		sys.exit()
@@ -128,7 +111,6 @@ def createClient(ip_addr, port_num):
 
 def main():
 	logger.info('Starting {}'.format(__file__))
-	# Uncomment this section for client.py testing
 
 	if len(sys.argv) != 3:
 	        logger.critical('Invalid number of arguments')
