@@ -11,6 +11,8 @@ from scipy.stats import kurtosis, skew
 from keras.models import load_model
 from keras.models import Sequential
 
+logger = logging.getLogger(__name__)
+
 DATAPATH = 'data/mega_data.csv' #mega_data.csv
 RESULT_DATAPATH = 'data/results.csv'
 MODELPATH = 'data/trained_nn_model.h5'
@@ -20,7 +22,7 @@ WINDOW_READINGS = int(WINDOW_SIZE * SAMPLING_RATE)
 WAITING_TIME = 5 #30% OVERLAPPING
 PREDICTION_THRESHOLD = 0.8
 NATURAL_MOVE = 0
-CLOSING_MOVE = 11 
+CLOSING_MOVE = 11
 
 ORDER = 3
 CUTOFF = 7
@@ -32,11 +34,13 @@ MEAN_VOLTAGE = 0
 MEAN_CURRENT = 0
 COUNT = 0
 
+
 def get_data(filename, numlines):
 	size = sum(1 for l in open(filename))
-	logging.debug("size: {}".format(size))
+	logger.debug("file size: {}".format(size))
 	data = pd.read_csv(filename, nrows=numlines, skiprows=range(0, size-numlines-1))
 	return data.iloc[:, 0:9], data.iloc[:, 9:11]
+
 
 def get_model(modelname):
 	return load_model(modelname)
@@ -47,9 +51,11 @@ def apply_filter(data, cutoff, readings, order):
 	filteredResult = butterworth.shitHotLP(data, cutoff, readings, order)
 	return filteredResult
 
+
 def normalize_data(data):
 	data_norm = (data - data.mean()) / (data.max() - data.min())
 	return np.array(data_norm)
+
 
 def magnitude(x, y, z):
 	x_sq = np.power(x, 2)
@@ -61,8 +67,10 @@ def magnitude(x, y, z):
 	xyz_mag = np.sqrt(xyz_sq)
 	return xyz_mag
 
+
 def rms(x, axis=None):
 	return np.sqrt(np.mean(np.power(x, 2), axis=axis))
+
 
 def feature_extraction(x, y, z):
 	#'''
@@ -100,8 +108,10 @@ def feature_extraction(x, y, z):
 	'''
 	return features
 
+
 def reshape_data(data):
 	return data.reshape(1, data.shape[0], data.shape[1])
+
 
 def feature_selection(X):
 	if X.ndim < 3:
@@ -122,12 +132,13 @@ def feature_selection(X):
 def check_results(y):
 	global RESULT
 	np.set_printoptions(formatter={'float_kind':'{:f}'.format})
-	logging.info("Probabilities: {}".format(y))
+	logger.info("Probabilities: {}".format(y))
 	y_pred = np.argmax(y, axis=1)[0]
-	#logging.debug('Predicted output: ', y_pred)
+	#logger.debug('Predicted output: ', y_pred)
 	send_result = (RESULT == y_pred) and (y_pred != NATURAL_MOVE) and (y[0][y_pred] > PREDICTION_THRESHOLD)
 	RESULT = y_pred
 	return send_result, y_pred
+
 
 def prepare_results(result, power_data):
 	global COUNT
@@ -135,7 +146,7 @@ def prepare_results(result, power_data):
 	MEAN_VOLTAGE = power_data[0]
 	MEAN_CURRENT = power_data[1]
 	SEND_TO_SERVER = True
-	logging.info("Result: {} {} {} {}".format(COUNT, RESULT, MEAN_VOLTAGE, MEAN_CURRENT))
+	logger.info("Result: {} {} {} {}".format(COUNT, RESULT, MEAN_VOLTAGE, MEAN_CURRENT))
 	COUNT = COUNT + 1
 
 	results = [RESULT, MEAN_VOLTAGE, MEAN_CURRENT]
@@ -144,15 +155,18 @@ def prepare_results(result, power_data):
 		w = csv.writer(csvfile)
 		w.writerow(results)
 
+
 def send_server():
 	#result, mean voltage, mean current`
 	return RESULT, MEAN_VOLTAGE, MEAN_CURRENT
 
+
 def init(modelname):
 	return get_model(modelname)
 
+
 def main_loop():
-	logging.info('Starting {}'.format(__file__))
+	logger.info('Starting {}'.format(__file__))
 
 	model = init(MODELPATH)
 	sleep(WINDOW_SIZE)
@@ -160,15 +174,16 @@ def main_loop():
 		sleep(WAITING_TIME)
 		data, power_data = get_data(DATAPATH, WINDOW_READINGS)
 		#with pd.option_context('display.max_rows', None, 'display.max_columns', 3):
-			#logging.debug(data)
+			#logger.debug(data)
 		filtered_data = apply_filter(data, CUTOFF, FILTER_SAMPLING_RATE, ORDER)
 		#X = feature_selection(filtered_data)
 		X = reshape_data(filtered_data)
 		y = model.predict(X)
 		is_result_good, result = check_results(y)
 		if is_result_good:
-			prepare_results(result, power_data)		
+			prepare_results(result, power_data)
 		#break #remove in actual code
+
 
 if __name__ == '__main__':
 	main_loop()

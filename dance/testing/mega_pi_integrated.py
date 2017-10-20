@@ -12,10 +12,10 @@ def start_running():
 	HANDSHAKE_PKT = bytes.fromhex("DD1C")
 	ACK_PKT = bytes.fromhex("DDCC")
 	ERR_PKT = bytes.fromhex("DDFD")
-	RESET_PIN = 17
-	DURATION = 120
 	SERIAL_PORT = '/dev/ttyAMA0'
 	CSV_DIR = 'data/mega_data.csv'
+	RESET_PIN = 17
+	DURATION = 120
 	BAUDRATE = 57600
 
 	logger = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ def start_running():
 	    fieldnames = ['acc1x', 'acc1y', 'acc1z', 'acc2x', 'acc2y', 'acc2z', 'acc3x', 'acc3y', 'acc3z', 'curr', 'volt']
 	    writer = csv.DictWriter(csvfile, extrasaction='ignore', fieldnames=fieldnames)
 	    writer.writeheader()
-        
+
 	    #initialize communications
 	    hasReplied = False
 	    while(not hasReplied):
@@ -67,7 +67,7 @@ def start_running():
 	            ser.write(ACK_PKT)
 	        else:
 	            time.sleep(1)
-	    
+
 	    #start timer
 	    # startTime = time.time()
 	    # endTime = time.time()
@@ -79,7 +79,7 @@ def start_running():
 	        if (ser.inWaiting() >= 26) :
 	            packet_type = bytearray(ser.read(2))
 	            (checksum,) = struct.unpack(">h", bytearray(ser.read(2)))
-	            
+
 	            #2. read data and convert to appropriate values
 	            #>h big endian, signed int (2 bytes)
 	            (acc1x,) = struct.unpack(">h", bytearray((ser.read(2))))
@@ -93,13 +93,13 @@ def start_running():
 	            (acc3z,) = struct.unpack(">h", bytearray((ser.read(2))))
 	            (curr,) = struct.unpack(">h", bytearray((ser.read(2))))
 	            (volt,) = struct.unpack(">h", bytearray((ser.read(2))))
-            
+
 	            calcChecksum = acc1x ^ acc1y ^ acc1z ^ acc2x ^ acc2y ^ acc2z ^ acc3x ^ acc3y ^ acc3z ^ curr ^ volt
-	            
+
 	            if (checksum == calcChecksum) :
 	                ser.write(ACK_PKT)
 	                writer.writerow({'acc1x': acc1x,
-	                                 'acc1y': acc1y, 
+	                                 'acc1y': acc1y,
 	                                 'acc1z': acc1z,
 	                                 'acc2x': acc2x,
 	                                 'acc2y': acc2y,
@@ -110,7 +110,7 @@ def start_running():
 	                                 'curr':  curr,
 	                                 'volt':  volt
 	                                 })
-	            else: 
+	            else:
 	                logger.warn('Packet error')
 	                ser.write(ERR_PKT)
 	            count = count + 1
@@ -125,6 +125,7 @@ def start_running():
 	ser.close()
 	logger.info('Exiting {}'.format(__file__))
 	sys.exit()
+
 
 if __name__ == '__main__':
 	start_running()
