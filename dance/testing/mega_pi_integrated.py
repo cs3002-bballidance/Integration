@@ -1,4 +1,4 @@
-import RPi.GPIO as GPIO
+# import RPi.GPIO as GPIO
 import serial
 import time
 import numpy
@@ -23,20 +23,20 @@ def start_running():
 
 	#instantiate GPIO
 	logger.info('Initializing GPIO')
-	GPIO.setmode(GPIO.BCM)
-	GPIO.setwarnings(False)
-	GPIO.setup(RESET_PIN,GPIO.OUT)
-	GPIO.output(RESET_PIN,GPIO.HIGH) # pull low then back to high to reset arduino
+	# GPIO.setmode(GPIO.BCM)
+	# GPIO.setwarnings(False)
+	# GPIO.setup(RESET_PIN,GPIO.OUT)
+	# GPIO.output(RESET_PIN,GPIO.HIGH) # pull low then back to high to reset arduino
 
 	#instantiate serial
 	try:
 		logger.info('Initializing serial interface')
 		ser = serial.Serial(SERIAL_PORT,BAUDRATE)
-		GPIO.output(RESET_PIN,GPIO.LOW)
+		# GPIO.output(RESET_PIN,GPIO.LOW)
 		ser.flushInput() # flush any existing serial buffer
 		logger.info('Resetting arduino before resuming')
 		time.sleep(1) # sleep for 1 second before pulling the pin back to high
-		GPIO.output(RESET_PIN,GPIO.HIGH)
+		# GPIO.output(RESET_PIN,GPIO.HIGH)
 	except serial.serialutil.SerialException:
 		logger.critical('Unable to open serial port: {}'.format(SERIAL_PORT))
 		sys.exit(1)

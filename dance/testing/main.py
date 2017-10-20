@@ -33,14 +33,17 @@ if __name__ == '__main__':
 
 	try:
 		p = Process(target=client_process)
+		p.daemon = True
 		jobs.append(p)
 		p.start()
 
 		p = Process(target=mega_process)
+		p.daemon = True
 		jobs.append(p)
 		p.start()
 
 		p = Process(target=prediction_process)
+		p.daemon = True
 		jobs.append(p)
 		p.start()
 
