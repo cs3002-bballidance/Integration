@@ -1,47 +1,49 @@
 from collections import defaultdict
 from Crypto import Random
 from Crypto.Cipher import AES
-
 import csv
 import logging
 import base64
 import socket
 import sys
 
-logger = logging.getLogger(__name__)
-KEY_DIR = '/script/Production/dance/testing/'
-RESULTS_DIR = 'data/results.csv'
-
 
 class client:
 	def __init__(self, ip_addr, port_num):
+		self.name = 'socket'
+		self.logger = logging.getLogger(self.name)
+		self.KEY_DIR = '/script/Production/dance/testing/'
+		self.RESULTS_DIR = 'data/results.csv'
+
 		# Create TCP/IP socket
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 		# Connect to server
 		try:
 			server_address = (ip_addr, port_num)
-			logger.info('Initiating connection to {} port {}'.format(ip_addr, port_num))
+			self.logger.info('Initiating connection to {} port {}'.format(ip_addr, port_num))
 			self.sock.connect(server_address)
 		except Exception as e:
-			logger.critical('Exception occured: {}'.format(e))
+			self.logger.critical('Exception occured: {}'.format(e))
 			exit(1)
-		logger.info('Connected to {} port {}'.format(ip_addr, port_num))
+		self.logger.info('Connected to {} port {}'.format(ip_addr, port_num))
 
 		# Obtain secret key from local key file
 		# TODO: Encode secret_key in key file then perform decode operations
 		try:
-			with open(KEY_DIR) as key:
+			with open(self.KEY_DIR) as key:
 				secret_key = key.read()
 				key.closed
 		except exception as e:
-			logger.critical('Exception on reading key: {}'.format(e))
+			self.logger.critical('Exception on reading key: {}'.format(e))
 		# ===================================================
 		# Uncomment this section for Raspberry Pi integration
 		# Obtain secret key from thumbdrive in Raspberry Pi
 		'''
-		secret_key = ' '
-		for root, dirs, files in os.walk(KEY_DIR):
+
+self.KEY_DIR = '/script/Production/dance/testing/'
+self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
+		for root, dirs, files in os.walk(self.KEY_DIR):
 			if 'key' in files:
 				if os.access(join(root, 'key'), os.R_OK):
 					with open(join(root, 'key')) as key:
@@ -65,13 +67,13 @@ class client:
 			columns = defaultdict(list)
 
 			try:
-				with open(RESULTS_DIR, newline='') as csvfile:
+				with open(self.RESULTS_DIR, newline='') as csvfile:
 					predicted_results = csv.reader(csvfile, delimiter=',', quotechar='|')
 					for row in predicted_results:
 						for(col,val) in enumerate(row):
 							columns[col].append(val)
 			except Exception as e:
-				logger.critical('Exception occured on reading results.csv: {}'.format(e))
+				self.logger.critical('Exception occured on reading results.csv: {}'.format(e))
 
 			action = int(columns[0][len(columns[0])-1])
 			current = float(columns[1][len(columns[1])-1])
@@ -85,12 +87,12 @@ class client:
 			current_str = str(current)
 			power_str = str(power)
 			cumulativepower_list.append(power)
-			#logger.debug("cumulativepower List : {}".format(cumulativepower_list))
+			#self.logger.debug("cumulativepower List : {}".format(cumulativepower_list))
 			cumulativepower_list_avg = float(sum(cumulativepower_list) / len(cumulativepower_list))
 
 			#1b. Assemble message
 			msg = b'#' + b'|'.join([self.actions[action].encode(), voltage_str.encode(), current_str.encode(), power_str.encode(), str(cumulativepower_list_avg).encode()]) + b'|'
-			logger.debug('unencrypted msg: {}'.format(msg))
+			self.logger.debug('unencrypted msg: {}'.format(msg))
 
 			#2. Encrypt readings
 			#2a. Apply padding
@@ -101,10 +103,10 @@ class client:
 			iv = Random.new().read(AES.block_size)
 			cipher = AES.new(secret_key.encode(), AES.MODE_CBC, iv)
 			encodedMsg = base64.b64encode(iv + cipher.encrypt(msg))
-			#logger.debug('encrypted msg: {}'.format(encodedMsg))
+			#self.logger.debug('encrypted msg: {}'.format(encodedMsg))
 
 			#3. Send data packet over
-			logger.info('Sending data to server')
+			self.logger.info('Sending data to server')
 			self.sock.sendall(encodedMsg)
 
 		#4. All done, logout.
