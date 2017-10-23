@@ -54,6 +54,7 @@ class serialPiMgr ():
 		time.sleep(1) # sleep for 1 second before pulling the pin back to high
 		GPIO.output(RESET_PIN,GPIO.HIGH)
 
+		# pandas dataframe might be faster. look at how it is implemented in sample_eval_server.py
 		with open(CSV_DIR, 'w') as csvfile:
 		    self.fieldnames = ['acc1x', 'acc1y', 'acc1z', 'acc2x', 'acc2y', 'acc2z', 'acc3x', 'acc3y', 'acc3z', 'curr', 'volt']
 		    writer = csv.DictWriter(csvfile, extrasaction='ignore', fieldnames=self.fieldnames)
