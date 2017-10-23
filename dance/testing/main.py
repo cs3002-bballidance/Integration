@@ -33,8 +33,7 @@ def serialPiProcess(l, genQ):
 		logger.info('serialPiProcess - Collecting sensor data')
 		# runs collection of sensor data
 		try:
-			logger.info('serialPi - Collecting sensor data')
-			#serialPiHandler.sensorCollection()
+			serialPiHandler.sensorCollection()
 		except KeyboardInterrupt:
 			sys.exit(0)
 	else:
