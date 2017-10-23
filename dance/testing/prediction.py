@@ -1,6 +1,5 @@
 import logging
 import csv
-import threading
 import client
 import sys
 import pandas as pd
@@ -40,11 +39,13 @@ class predictionMgr():
 		self.MEAN_CURRENT = 0
 		self.COUNT = 0
 
+
 	def status(self):
 		self.logger.info('status: True')
 		return True
 
-	def run(self):
+
+	def run(self, out2ServerQ):
 		self.model = self.get_model(self.MODELPATH)
 		# model = init(self.MODELPATH)
 		sleep(self.WINDOW_SIZE)
@@ -60,7 +61,9 @@ class predictionMgr():
 				y = self.model.predict(X)
 				is_result_good, results = self.check_results(y)
 				if is_result_good:
-					self.prepare_results(results, power_data)
+					results = self.prepare_results(results, power_data)
+					out2ServerQ.put(results)
+					self.logger.debug("out2ServerQ contents: {}".format(results))
 					#break #remove in actual code
 			except Exception as e:
 				self.logger.critical('Exception occured: {}'.format(e))
@@ -179,10 +182,10 @@ class predictionMgr():
 		self.COUNT = self.COUNT + 1
 
 		results = [self.RESULT, self.MEAN_VOLTAGE, self.MEAN_CURRENT]
-
-		with open(self.RESULT_DATAPATH, 'w') as csvfile:
-			w = csv.writer(csvfile)
-			w.writerow(results)
+		return results
+		# with open(self.RESULT_DATAPATH, 'w') as csvfile:
+		# 	w = csv.writer(csvfile)
+		# 	w.writerow(results)
 
 
 	def send_server(self):
@@ -199,6 +202,7 @@ def main():
 	logger = logging.getLogger('dancePrediction')
 	logger.warn('You should initiate this script as a module')
 	sys.exit(1)
+
 
 if __name__ == '__main__':
 	main()

@@ -1,4 +1,4 @@
-# import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 import serial
 import time
 import numpy
@@ -136,10 +136,6 @@ class serialPiMgr ():
 		self.logger.info('Exiting {}'.format(__file__))
 		sys.exit()
 
-	# def StopThread(self):
-	# 	self.thrMon.acquire()
-	# 	self.thrMon.notifyAll()
-	# 	self.thrMon.release()
 
 def main():
 	logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',level=logging.DEBUG)
