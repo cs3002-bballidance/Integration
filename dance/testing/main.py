@@ -8,11 +8,11 @@ import prediction
 import client
 
 FILENAME = 'log/bballi.log'
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',filename=FILENAME,level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 	#supress debugging output
 
-SERVER_IP = '127.0.0.1'
+SERVER_IP = '192.168.10.97'
 SERVER_PORT = 8888
 
 
@@ -33,7 +33,8 @@ def serialPiProcess(l, genQ):
 		logger.info('serialPiProcess - Collecting sensor data')
 		# runs collection of sensor data
 		try:
-			serialPiHandler.sensorCollection()
+			logger.info('serialPi - Collecting sensor data')
+			#serialPiHandler.sensorCollection()
 		except KeyboardInterrupt:
 			sys.exit(0)
 	else:

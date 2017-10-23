@@ -30,13 +30,13 @@ class serialPiMgr ():
 		self.logger.info('Initializing GPIO')
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setwarnings(False)
-		GPIO.setup(RESET_PIN,GPIO.OUT)
-		GPIO.output(RESET_PIN,GPIO.HIGH) # pull low then back to high to reset arduino
+		GPIO.setup(self.RESET_PIN,GPIO.OUT)
+		GPIO.output(self.RESET_PIN,GPIO.HIGH) # pull low then back to high to reset arduino
 
 		#instantiate serial
 		try:
 			self.logger.info('Initializing serial interface')
-			ser = serial.Serial(self.SERIAL_PORT,self.BAUDRATE)
+			self.ser = serial.Serial(self.SERIAL_PORT,self.BAUDRATE)
 		except serial.serialutil.SerialException:
 			self.logger.critical('Unable to open serial port: {}'.format(self.SERIAL_PORT))
 			return False
@@ -48,14 +48,14 @@ class serialPiMgr ():
 
 
 	def sensorCollection(self):
-		GPIO.output(RESET_PIN,GPIO.LOW)
-		ser.flushInput() # flush any existing serial buffer
+		GPIO.output(self.RESET_PIN,GPIO.LOW)
+		self.ser.flushInput() # flush any existing serial buffer
 		self.logger.info('Resetting arduino before resuming')
 		time.sleep(1) # sleep for 1 second before pulling the pin back to high
-		GPIO.output(RESET_PIN,GPIO.HIGH)
+		GPIO.output(self.RESET_PIN,GPIO.HIGH)
 
 		# pandas dataframe might be faster. look at how it is implemented in sample_eval_server.py
-		with open(CSV_DIR, 'w') as csvfile:
+		with open(self.CSV_DIR, 'w') as csvfile:
 		    self.fieldnames = ['acc1x', 'acc1y', 'acc1z', 'acc2x', 'acc2y', 'acc2z', 'acc3x', 'acc3y', 'acc3z', 'curr', 'volt']
 		    writer = csv.DictWriter(csvfile, extrasaction='ignore', fieldnames=self.fieldnames)
 		    writer.writeheader()
@@ -65,17 +65,17 @@ class serialPiMgr ():
 		    while(not self.hasReplied):
 		        #1. send a handshake
 		        self.logger.info('Sending handshake to arduino')
-		        ser.write(self.HANDSHAKE_PKT)
+		        self.ser.write(self.HANDSHAKE_PKT)
 		        #2. wait for input then check
 		        time.sleep(1)
 		        self.logger.info('Waiting for acknowledgement from arduino')
-		        bytesToRead = ser.inWaiting()
-		        response = ser.read(bytesToRead)
+		        bytesToRead = self.ser.inWaiting()
+		        response = self.ser.read(bytesToRead)
 		        #3. send an ACK if right
-		        if response == ACK_PKT:
+		        if response == self.ACK_PKT:
 		            self.logger.info('Acknowledgement received')
 		            self.hasReplied = True
-		            ser.write(ACK_PKT)
+		            self.ser.write(self.ACK_PKT)
 		        else:
 		            time.sleep(1)
 
@@ -87,28 +87,28 @@ class serialPiMgr ():
 		    #wait for data
 		    while True: #(endTime - startTime) < DURATION: #True :
 		        #1. wait until the entire packet arrives
-		        if (ser.inWaiting() >= 26) :
-		            packet_type = bytearray(ser.read(2))
-		            (checksum,) = struct.unpack(">h", bytearray(ser.read(2)))
+		        if (self.ser.inWaiting() >= 26) :
+		            packet_type = bytearray(self.ser.read(2))
+		            (checksum,) = struct.unpack(">h", bytearray(self.ser.read(2)))
 
 		            #2. read data and convert to appropriate values
 		            #>h big endian, signed int (2 bytes)
-		            (acc1x,) = struct.unpack(">h", bytearray((ser.read(2))))
-		            (acc1y,) = struct.unpack(">h", bytearray((ser.read(2))))
-		            (acc1z,) = struct.unpack(">h", bytearray((ser.read(2))))
-		            (acc2x,) = struct.unpack(">h", bytearray((ser.read(2))))
-		            (acc2y,) = struct.unpack(">h", bytearray((ser.read(2))))
-		            (acc2z,) = struct.unpack(">h", bytearray((ser.read(2))))
-		            (acc3x,) = struct.unpack(">h", bytearray((ser.read(2))))
-		            (acc3y,) = struct.unpack(">h", bytearray((ser.read(2))))
-		            (acc3z,) = struct.unpack(">h", bytearray((ser.read(2))))
-		            (curr,) = struct.unpack(">h", bytearray((ser.read(2))))
-		            (volt,) = struct.unpack(">h", bytearray((ser.read(2))))
+		            (acc1x,) = struct.unpack(">h", bytearray((self.ser.read(2))))
+		            (acc1y,) = struct.unpack(">h", bytearray((self.ser.read(2))))
+		            (acc1z,) = struct.unpack(">h", bytearray((self.ser.read(2))))
+		            (acc2x,) = struct.unpack(">h", bytearray((self.ser.read(2))))
+		            (acc2y,) = struct.unpack(">h", bytearray((self.ser.read(2))))
+		            (acc2z,) = struct.unpack(">h", bytearray((self.ser.read(2))))
+		            (acc3x,) = struct.unpack(">h", bytearray((self.ser.read(2))))
+		            (acc3y,) = struct.unpack(">h", bytearray((self.ser.read(2))))
+		            (acc3z,) = struct.unpack(">h", bytearray((self.ser.read(2))))
+		            (curr,) = struct.unpack(">h", bytearray((self.ser.read(2))))
+		            (volt,) = struct.unpack(">h", bytearray((self.ser.read(2))))
 
 		            self.calcChecksum = acc1x ^ acc1y ^ acc1z ^ acc2x ^ acc2y ^ acc2z ^ acc3x ^ acc3y ^ acc3z ^ curr ^ volt
 
 		            if (checksum == self.calcChecksum) :
-		                ser.write(ACK_PKT)
+		                self.ser.write(self.ACK_PKT)
 		                writer.writerow({'acc1x': acc1x,
 		                                 'acc1y': acc1y,
 		                                 'acc1z': acc1z,
@@ -123,7 +123,7 @@ class serialPiMgr ():
 		                                 })
 		            else:
 		                self.logger.warn('Packet error')
-		                ser.write(ERR_PKT)
+		                self.ser.write(self.ERR_PKT)
 		            self.count = self.count + 1
 		        #3. update timer
 		        # endTime = time.time()
@@ -133,7 +133,7 @@ class serialPiMgr ():
 		    self.logger.debug('data collected: {}'.format(count))
 
 		#All done
-		ser.close()
+		self.ser.close()
 		self.logger.info('Exiting {}'.format(__file__))
 		sys.exit()
 
