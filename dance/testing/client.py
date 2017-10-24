@@ -137,6 +137,7 @@ def createClient(ip_addr, port_num):
 
 
 def main():
+	logger = logging.getLogger('piClient')
 	logger.info('Starting {}'.format(__file__))
 
 	if len(sys.argv) != 3:
@@ -148,7 +149,8 @@ def main():
 	port_num = int(sys.argv[2])
 
 	try:
-		my_client = client(ip_addr, port_num)
+		my_client = client.clientMgr()
+		my_client = client(ip_addr, port_num, statusQ)
 	#except TimeoutError:
 	#	logger.critical('Timeout error on connection to server')
 	except Exception as e:

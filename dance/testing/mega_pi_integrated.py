@@ -6,6 +6,7 @@ import csv
 import sys
 import struct
 import logging
+import pandas as pd
 
 class serialPiMgr ():
 	def __init__(self):
@@ -13,6 +14,14 @@ class serialPiMgr ():
 		self.name = "serialPi"
 		self.logger = logging.getLogger(self.name)
 		self.logger.info('Initializing {} ({})'.format(self.name,__file__))
+		self.columns = ['acc1x', 'acc1y', 'acc1z',
+			'acc2x', 'acc2y', 'acc2z',
+			'acc3x', 'acc3y', 'acc3z',
+			'curr', 'volt']
+		self.df = pd.DataFrame(columns=self.columns)
+		self.df = self.df.set_index('acc1x')
+		self.SERIAL_PORT = '/dev/ttyAMA0'
+		self.CSV_DIR = 'data/mega_data.csv'
 
 
 	def run(self):
@@ -20,8 +29,6 @@ class serialPiMgr ():
 		self.HANDSHAKE_PKT = bytes.fromhex("DD1C")
 		self.ACK_PKT = bytes.fromhex("DDCC")
 		self.ERR_PKT = bytes.fromhex("DDFD")
-		self.SERIAL_PORT = '/dev/ttyAMA0'
-		self.CSV_DIR = 'data/mega_data.csv'
 		self.RESET_PIN = 17
 		self.DURATION = 120
 		self.BAUDRATE = 57600
@@ -80,10 +87,10 @@ class serialPiMgr ():
 		            time.sleep(1)
 
 		    #start timer
-		    # startTime = time.time()
-		    # endTime = time.time()
+		    #startTime = time.time()
+		    #endTime = time.time()
 
-		    self.count = 0
+		    #self.count = 0
 		    #wait for data
 		    while True: #(endTime - startTime) < DURATION: #True :
 		        #1. wait until the entire packet arrives
@@ -124,13 +131,15 @@ class serialPiMgr ():
 		            else:
 		                self.logger.warn('Packet error')
 		                self.ser.write(self.ERR_PKT)
-		            self.count = self.count + 1
-		        #3. update timer
-		        # endTime = time.time()
+		            #self.count = self.count + 1
+		            #3. update timer
+		            #endTime = time.time()
+		            #self.logger.debug('1 data per: {} '.format(endTime - startTime))
+		            #startTime = endTime
 		    # logger.debug('startTime: {}'.format(startTime))
 		    # logger.debug('endTime: {}'.format(endTime))
 		    # logger.debug('duration: {} secs'.format(int(endTime - startTime)))
-		    self.logger.debug('data collected: {}'.format(count))
+		    #self.logger.debug('data collected: {}'.format(count))
 
 		#All done
 		self.ser.close()
