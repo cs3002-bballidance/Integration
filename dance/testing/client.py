@@ -1,47 +1,41 @@
 from collections import defaultdict
 from Crypto import Random
 from Crypto.Cipher import AES
-
 import csv
 import logging
 import base64
 import socket
 import sys
+import time
 
-logger = logging.getLogger(__name__)
-KEY_DIR = '/script/Production/dance/testing/'
-RESULTS_DIR = 'data/results.csv'
+class clientMgr():
+	def __init__(self):
+		self.name = 'piSocket'
+		self.logger = logging.getLogger(self.name)
+		self.KEY_DIR = '/mnt/normalStorage/.key'
+		# self.RESULTS_DIR = 'data/results.csv'
 
-
-class client:
-	def __init__(self, ip_addr, port_num):
 		# Create TCP/IP socket
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-		# Connect to server
-		try:
-			server_address = (ip_addr, port_num)
-			logger.info('Initiating connection to {} port {}'.format(ip_addr, port_num))
-			self.sock.connect(server_address)
-		except Exception as e:
-			logger.critical('Exception occured: {}'.format(e))
-			exit(1)
-		logger.info('Connected to {} port {}'.format(ip_addr, port_num))
 
 		# Obtain secret key from local key file
 		# TODO: Encode secret_key in key file then perform decode operations
 		try:
-			with open(KEY_DIR) as key:
-				secret_key = key.read()
+			with open(self.KEY_DIR) as key:
+				self.secret_key = key.read()
 				key.closed
-		except exception as e:
-			logger.critical('Exception on reading key: {}'.format(e))
+				self.logger.debug("Keyfile found: {}".format(self.secret_key))
+		except Exception as e:
+			self.logger.critical('Exception on reading key: {}'.format(e))
+			sys.exit(1)
 		# ===================================================
 		# Uncomment this section for Raspberry Pi integration
 		# Obtain secret key from thumbdrive in Raspberry Pi
 		'''
-		secret_key = ' '
-		for root, dirs, files in os.walk(KEY_DIR):
+
+self.KEY_DIR = '/script/Production/dance/testing/'
+self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
+		for root, dirs, files in os.walk(self.KEY_DIR):
 			if 'key' in files:
 				if os.access(join(root, 'key'), os.R_OK):
 					with open(join(root, 'key')) as key:
@@ -54,62 +48,88 @@ class client:
 		# List of actions available
 		self.actions = ['logout  ', 'wavehands', 'busdriver', 'frontback', 'sidestep', 'jumping',
 						'jumpingjack', 'turnclap', 'squatturnclap', 'windowcleaning', 'windowcleaner360']
-		action = ''
-		cumulativepower_list = []
-		cumulativepower_list_avg = 0
+		self.action = ''
+		self.cumulativepower_list = []
+		self.cumulativepower_list_avg = 0
 
+
+	def conn(self, ip_addr, port_num, out2ServerQ):
+		# Connect to server
+		try:
+			server_address = (ip_addr, port_num)
+			self.logger.info('Initiating connection to {} port {}'.format(ip_addr, port_num))
+			self.sock.connect(server_address)
+			self.logger.info('Connected to {} port {}'.format(ip_addr, port_num))
+			return True
+		except Exception as e:
+			self.logger.critical('Exception occured: {}'.format(e))
+			return False
+
+
+	def run(self, out2ServerQ):
 		# Send data until logout action is recieved
-		while action != 0:
-			#1. Get action, current and voltage from prediction.py
-			# TODO: Check if file has changed since previous results if not wait until new file exists
-			columns = defaultdict(list)
-
+		# while action != 0:
+		while True:
 			try:
-				with open(RESULTS_DIR, newline='') as csvfile:
-					predicted_results = csv.reader(csvfile, delimiter=',', quotechar='|')
-					for row in predicted_results:
-						for(col,val) in enumerate(row):
-							columns[col].append(val)
-			except Exception as e:
-				logger.critical('Exception occured on reading results.csv: {}'.format(e))
+				resultList = out2ServerQ.get()
+				self.logger.debug('resultList: {}'.format(resultList))
+			finally:
+				# print('in action')
+				#1. Get action, current and voltage from prediction.py
+				# TODO: Check if file has changed since previous results if not wait until new file exists
+				# columns = defaultdict(list)
 
-			action = int(columns[0][len(columns[0])-1])
-			current = float(columns[1][len(columns[1])-1])
-			voltage = float(columns[2][len(columns[2])-1])
-			# Necessary to prevent overflow of msg from being flooded to encrypt
-			time.sleep(1)
+				# try:
+				# 	with open(self.RESULTS_DIR, newline='') as csvfile:
+				# 		predicted_results = csv.reader(csvfile, delimiter=',', quotechar='|')
+				# 		for row in predicted_results:
+				# 			for(col,val) in enumerate(row):
+				# 				columns[col].append(val)
+				# except Exception as e:
+				# 	self.logger.critical('Exception occured on reading results.csv: {}'.format(e))
+				#
+				# action = int(columns[0][len(columns[0])-1])
+				# current = float(columns[1][len(columns[1])-1])
+				# voltage = float(columns[2][len(columns[2])-1])
+				action = resultList[0]
+				voltage = resultList[1]/100
+				current = resultList[2]/100
+				self.logger.debug('output from resultList: {} {} {}'.format(action,voltage,current))
 
-			#1a. Calculates average power since first reading
-			power = voltage * current
-			voltage_str = str(voltage)
-			current_str = str(current)
-			power_str = str(power)
-			cumulativepower_list.append(power)
-			#logger.debug("cumulativepower List : {}".format(cumulativepower_list))
-			cumulativepower_list_avg = float(sum(cumulativepower_list) / len(cumulativepower_list))
+				# Necessary to prevent overflow of msg from being flooded to encrypt
+				time.sleep(1)
 
-			#1b. Assemble message
-			msg = b'#' + b'|'.join([self.actions[action].encode(), voltage_str.encode(), current_str.encode(), power_str.encode(), str(cumulativepower_list_avg).encode()]) + b'|'
-			logger.debug('unencrypted msg: {}'.format(msg))
+				#1a. Calculates average power since first reading
+				power = voltage * current
+				voltage_str = str(voltage)
+				current_str = str(current)
+				power_str = str(power)
+				self.cumulativepower_list.append(power)
+				#self.logger.debug("cumulativepower List : {}".format(cumulativepower_list))
+				self.cumulativepower_list_avg = float(sum(self.cumulativepower_list) / len(self.cumulativepower_list))
 
-			#2. Encrypt readings
-			#2a. Apply padding
-			length = 16 - (len(msg) % 16)
-			msg += bytes([length])*length
+				#1b. Assemble message
+				msg = b'#' + b'|'.join([self.actions[action].encode(), voltage_str.encode(), current_str.encode(), power_str.encode(), str(self.cumulativepower_list_avg).encode()]) + b'|'
+				self.logger.debug('unencrypted msg: {}'.format(msg))
 
-			#2b. Apply AES-CBC encryption
-			iv = Random.new().read(AES.block_size)
-			cipher = AES.new(secret_key.encode(), AES.MODE_CBC, iv)
-			encodedMsg = base64.b64encode(iv + cipher.encrypt(msg))
-			#logger.debug('encrypted msg: {}'.format(encodedMsg))
+				#2. Encrypt readings
+				#2a. Apply padding
+				length = 16 - (len(msg) % 16)
+				msg += bytes([length])*length
 
-			#3. Send data packet over
-			logger.info('Sending data to server')
-			self.sock.sendall(encodedMsg)
+				#2b. Apply AES-CBC encryption
+				iv = Random.new().read(AES.block_size)
+				cipher = AES.new(self.secret_key.encode(), AES.MODE_CBC, iv)
+				encodedMsg = base64.b64encode(iv + cipher.encrypt(msg))
+				#self.logger.debug('encrypted msg: {}'.format(encodedMsg))
 
-		#4. All done, logout.
-		self.sock.close()
-		sys.exit()
+				#3. Send data packet over
+				self.logger.info('Sending data to server')
+				self.sock.sendall(encodedMsg)
+
+			#4. All done, logout.
+			# self.sock.close()
+			# sys.exit()
 
 
 def createClient(ip_addr, port_num):
@@ -117,6 +137,7 @@ def createClient(ip_addr, port_num):
 
 
 def main():
+	logger = logging.getLogger('piClient')
 	logger.info('Starting {}'.format(__file__))
 
 	if len(sys.argv) != 3:
@@ -128,7 +149,8 @@ def main():
 	port_num = int(sys.argv[2])
 
 	try:
-		my_client = client(ip_addr, port_num)
+		my_client = client.clientMgr()
+		my_client = client(ip_addr, port_num, statusQ)
 	#except TimeoutError:
 	#	logger.critical('Timeout error on connection to server')
 	except Exception as e:
