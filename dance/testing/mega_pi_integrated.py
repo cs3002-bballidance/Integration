@@ -66,6 +66,7 @@ class serialPiMgr ():
 		    self.fieldnames = ['acc1x', 'acc1y', 'acc1z', 'acc2x', 'acc2y', 'acc2z', 'acc3x', 'acc3y', 'acc3z', 'curr', 'volt']
 		    writer = csv.DictWriter(csvfile, extrasaction='ignore', fieldnames=self.fieldnames)
 		    writer.writeheader()
+		    csvfile.close()
 
 		    #initialize communications
 		    self.hasReplied = False
@@ -116,18 +117,21 @@ class serialPiMgr ():
 
 		            if (checksum == self.calcChecksum) :
 		                self.ser.write(self.ACK_PKT)
-		                writer.writerow({'acc1x': acc1x,
-		                                 'acc1y': acc1y,
-		                                 'acc1z': acc1z,
-		                                 'acc2x': acc2x,
-		                                 'acc2y': acc2y,
-		                                 'acc2z': acc2z,
-		                                 'acc3x': acc3x,
-		                                 'acc3y': acc3y,
-		                                 'acc3z': acc3z,
-		                                 'curr':  curr,
-		                                 'volt':  volt
-		                                 })
+		                with open(self.CSV_DIR, 'a') as csvfile:
+		                    writer = csv.DictWriter(csvfile, extrasaction='ignore', fieldnames=self.fieldnames)
+		                    writer.writerow({'acc1x': acc1x,
+		                                     'acc1y': acc1y,
+		                                     'acc1z': acc1z,
+		                                     'acc2x': acc2x,
+		                                     'acc2y': acc2y,
+		                                     'acc2z': acc2z,
+		                                     'acc3x': acc3x,
+		                                     'acc3y': acc3y,
+		                                     'acc3z': acc3z,
+		                                     'curr':  curr,
+		                                     'volt':  volt
+		                                     })
+		                    csvfile.close()
 		            else:
 		                self.logger.warn('Packet error')
 		                self.ser.write(self.ERR_PKT)
