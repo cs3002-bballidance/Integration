@@ -13,6 +13,7 @@ class clientMgr():
 		self.name = 'piSocket'
 		self.logger = logging.getLogger(self.name)
 		self.KEY_DIR = '/mnt/normalStorage/.key'
+		self.count = 0
 		# self.RESULTS_DIR = 'data/results.csv'
 
 		# Create TCP/IP socket
@@ -94,7 +95,11 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 				action = resultList[0]
 				voltage = resultList[1]/100
 				current = resultList[2]/100
-				self.logger.debug('output from resultList: {} {} {}'.format(action,voltage,current))
+				prediction_count = resultList[3]
+				self.logger.debug('output from resultList: {} {} {} {}'.format(action,voltage,current, prediction_count))
+				if prediction_count != self.count:
+					self.logger.warn('Incorrect sequence! expected prediction count: {}, received: {}'.format(prediction_count, self.count))
+				self.count = prediction_count
 
 				# Necessary to prevent overflow of msg from being flooded to encrypt
 				time.sleep(1)
@@ -110,7 +115,7 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 
 				#1b. Assemble message
 				msg = b'#' + b'|'.join([self.actions[action].encode(), voltage_str.encode(), current_str.encode(), power_str.encode(), str(self.cumulativepower_list_avg).encode()]) + b'|'
-				self.logger.debug('unencrypted msg: {}'.format(msg))
+				self.logger.debug('count: {}, unencrypted msg: {}'.format(count, msg))
 
 				#2. Encrypt readings
 				#2a. Apply padding

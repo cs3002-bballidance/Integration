@@ -24,8 +24,8 @@ class predictionMgr():
 		self.SAMPLING_RATE = 50
 		self.WINDOW_SIZE = 2
 		self.WINDOW_READINGS = int(self.WINDOW_SIZE * self.SAMPLING_RATE)
-		self.WAITING_TIME = 1 #50% OVERLAPPING
-		self.PREDICTION_THRESHOLD = 0.8
+		self.WAITING_TIME = 1.9 #50% OVERLAPPING
+		self.PREDICTION_THRESHOLD = 0.9
 		self.NATURAL_MOVE = 0
 		self.CLOSING_MOVE = 11
 
@@ -64,14 +64,14 @@ class predictionMgr():
 					results = self.prepare_results(results, power_data)
 					out2ServerQ.put(results)
 					self.logger.debug("out2ServerQ contents: {}".format(results))
-					#break #remove in actual code
+					sleep(self.WAITING_TIME)
 			except Exception as e:
 				self.logger.critical('Exception occured: {}'.format(e))
 
 
 	def get_data(self, filename, numlines):
 		size = sum(1 for l in open(filename))
-		self.logger.debug("file size: {}".format(size))
+		#self.logger.debug("file size: {}".format(size))
 		data = pd.read_csv(filename, nrows=numlines, skiprows=range(0, size-numlines-1))
 		return data.iloc[:, 0:9], data.iloc[:, 9:11]
 
@@ -165,10 +165,11 @@ class predictionMgr():
 
 	def check_results(self, y):
 		np.set_printoptions(formatter={'float_kind':'{:f}'.format})
-		self.logger.info("Probabilities: {}".format(y))
+		#self.logger.info("Probabilities: {}".format(y))
 		y_pred = np.argmax(y, axis=1)[0]
 		#logger.debug('Predicted output: ', y_pred)
-		send_result = (self.RESULT == y_pred) and (y_pred != self.NATURAL_MOVE) and (y[0][y_pred] > self.PREDICTION_THRESHOLD)
+		#send_result = (self.RESULT == y_pred) and (y_pred != self.NATURAL_MOVE) and (y[0][y_pred] > self.PREDICTION_THRESHOLD)
+		send_result = (y_pred != self.NATURAL_MOVE) and (y[0][y_pred] > self.PREDICTION_THRESHOLD)
 		self.RESULT = y_pred
 		return send_result, y_pred
 
@@ -179,9 +180,8 @@ class predictionMgr():
 		self.MEAN_CURRENT = power_data[1]
 		self.SEND_TO_SERVER = True
 		self.logger.info("Count: {} Results: {} {} {}".format(self.COUNT, self.RESULT, self.MEAN_VOLTAGE, self.MEAN_CURRENT))
+		results = [self.RESULT, self.MEAN_VOLTAGE, self.MEAN_CURRENT, self.COUNT]
 		self.COUNT = self.COUNT + 1
-
-		results = [self.RESULT, self.MEAN_VOLTAGE, self.MEAN_CURRENT]
 		return results
 		# with open(self.RESULT_DATAPATH, 'w') as csvfile:
 		# 	w = csv.writer(csvfile)
