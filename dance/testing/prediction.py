@@ -24,7 +24,7 @@ class predictionMgr():
 		self.SAMPLING_RATE = 50
 		self.WINDOW_SIZE = 2
 		self.WINDOW_READINGS = int(self.WINDOW_SIZE * self.SAMPLING_RATE)
-		self.WAITING_TIME = 5 #30% OVERLAPPING
+		self.WAITING_TIME = 1 #50% OVERLAPPING
 		self.PREDICTION_THRESHOLD = 0.8
 		self.NATURAL_MOVE = 0
 		self.CLOSING_MOVE = 11
