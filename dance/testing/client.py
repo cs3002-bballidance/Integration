@@ -13,7 +13,7 @@ class clientMgr():
 		self.name = 'piSocket'
 		self.logger = logging.getLogger(self.name)
 		self.KEY_DIR = '/mnt/normalStorage/.key'
-		self.count = 0
+		self.count = 1
 
 		# Create TCP/IP socket
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -99,7 +99,7 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 				self.logger.debug('output from resultList: {} {} {} {}'.format(action,voltage,current, prediction_count))
 				if prediction_count != self.count:
 					self.logger.warn('Incorrect sequence! expected prediction count: {}, received: {}'.format(prediction_count, self.count))
-				self.count = prediction_count # wouldn't this defeat the purpose of checking their count? they shouldn't be dependent on each other?
+				self.count = self.count + 1 # wouldn't this defeat the purpose of checking their count? they shouldn't be dependent on each other?
 
 				# Necessary to prevent overflow of msg from being flooded to encrypt
 				#time.sleep(1)
