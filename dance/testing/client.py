@@ -49,7 +49,7 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 		self.actions = ['', 'wavehands', 'busdriver', 'frontback', 'sidestep', 'jumping',
 						'jumpingjack', 'turnclap', 'squatturnclap', 'windowcleaning', 'windowcleaner360'
 						'logout  ']
-		self.action = ''
+		self.action = 0
 		self.cumulativepower_list = []
 		self.cumulativepower_list_avg = 0
 
