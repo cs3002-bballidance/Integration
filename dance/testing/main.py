@@ -19,7 +19,6 @@ SERVER_PORT = 8888
 def serialPiProcess(l, genQ):
 	l.acquire()
 	try:
-		logger.debug('serialPiProcess')
 		serialPiHandler = mega_pi_integrated.serialPiMgr()
 		init_result = serialPiHandler.run()
 	except Exception as e:
@@ -30,7 +29,6 @@ def serialPiProcess(l, genQ):
 		l.release()
 
 	if init_result:
-		logger.info('serialPiProcess - Collecting sensor data')
 		# runs collection of sensor data
 		try:
 			serialPiHandler.sensorCollection()
@@ -45,46 +43,40 @@ def piPredictionProcess(l, genQ, out2ServerQ):
 	try:
 		cont = genQ.get()
 		if cont:
-			logger.debug('piPredictionProcess - Starting')
-			# Figure out how to get result before running the whole process
 			piPredictionHandler = prediction.predictionMgr()
 			init_result = piPredictionHandler.status();
 		else:
 			logger.critical('piPredictionProcess - Error in serialPiProcess. Unable to start.')
 			init_result = cont
 	finally:
-		logger.debug('piPredictionProcess - {}'.format(init_result))
 		genQ.put(init_result)
 		l.release()
 
-	if init_result:
-		logger.info('piPredictionProcess - Waiting for server connection')
+	if init_result: #prediction initialized properly
 		time.sleep(1)
 
 		# runs prediction
 		connStat = out2ServerQ.get()
-		if connStat:
+		if connStat: #connection to server success
 			try:
 				piPredictionHandler.run(out2ServerQ)
 			except KeyboardInterrupt:
 				sys.exit(0)
-		else:
-			logger.debug('piPredictionProcess - connStat: {}'.format(connStat))
-	sys.exit(1)
+		else: #connection to server failed
+			logger.debug('piPredictionProcess - connection to server: {}'.format(connStat))
+	sys.exit(1) #prediction doesn't initialized properly, exit.
 
 
 def piClientProcess(l, genQ, out2ServerQ):
 	l.acquire()
 	try:
 		cont = genQ.get()
-		logger.debug('piClientProcess: {}'.format(cont))
 		if not cont:
 			logger.critical('piClientProcess - Error in serialPiProcess. Unable to continue.')
 	finally:
 		l.release()
 
 	if cont:
-		logger.info('piClientProcess - Starting')
 		# initialize client process
 		try:
 			myclient = client.clientMgr()
