@@ -94,7 +94,7 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 				self.action = resultList[0]
 				voltage = resultList[1]/100
 				current = resultList[2]/1000
-				self.logger.debug('output from resultList: {} {} {} {}'.format(action,voltage,current))
+				self.logger.debug('output from resultList: {} {} {} {}'.format(self.action,voltage,current))
 				# Necessary to prevent overflow of msg from being flooded to encrypt
 				#time.sleep(1)
 
