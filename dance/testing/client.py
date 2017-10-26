@@ -102,7 +102,7 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 				self.count = prediction_count
 
 				# Necessary to prevent overflow of msg from being flooded to encrypt
-				time.sleep(1)
+				#time.sleep(1)
 
 				#1a. Calculates average power since first reading
 				power = voltage * current
