@@ -48,7 +48,7 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 		self.actions = ['', 'wavehands', 'busdriver', 'frontback', 'sidestep', 'jumping',
 						'jumpingjack', 'turnclap', 'squatturnclap', 'windowcleaning', 'windowcleaner360'
 						'logout  ']
-		self.action = ''
+		self.action = 0
 		self.cumulativepower_list = []
 		self.cumulativepower_list_avg = 0
 
@@ -70,6 +70,8 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 		# Send data until logout action is recieved
 		#while action != 11:
 	while True:
+		while self.action != 11:
+		#while True:
 			try:
 				resultList = out2ServerQ.get() # will be in blocking state until Queue is not empty
 				self.logger.debug('resultList: {}'.format(resultList))
@@ -91,7 +93,7 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 				# action = int(columns[0][len(columns[0])-1])
 				# current = float(columns[1][len(columns[1])-1])
 				# voltage = float(columns[2][len(columns[2])-1])
-				action = resultList[0]
+				self.action = resultList[0]
 				voltage = resultList[1]/100
 				current = resultList[2]/1000
 				self.logger.debug('output from resultList: {} {} {} {}'.format(action,voltage,current))
@@ -108,9 +110,8 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 				self.cumulativepower_list_avg = float(sum(self.cumulativepower_list) / len(self.cumulativepower_list))
 
 				#1b. Assemble message
-				msg = b'#' + b'|'.join([self.actions[action].encode(), voltage_str.encode(), current_str.encode(), power_str.encode(), str(self.cumulativepower_list_avg).encode()]) + b'|'
+				msg = b'#' + b'|'.join([self.actions[self.action].encode(), voltage_str.encode(), current_str.encode(), power_str.encode(), str(self.cumulativepower_list_avg).encode()]) + b'|'
 				self.logger.debug('unencrypted msg: {}'.format(msg))
-
 				#2. Encrypt readings
 				#2a. Apply padding
 				length = 16 - (len(msg) % 16)
