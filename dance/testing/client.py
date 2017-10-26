@@ -14,7 +14,6 @@ class clientMgr():
 		self.logger = logging.getLogger(self.name)
 		self.KEY_DIR = '/mnt/normalStorage/.key'
 		self.count = 0
-		# self.RESULTS_DIR = 'data/results.csv'
 
 		# Create TCP/IP socket
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -58,7 +57,7 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 		# Connect to server
 		try:
 			server_address = (ip_addr, port_num)
-			self.logger.info('Initiating connection to {} port {}'.format(ip_addr, port_num))
+			self.logger.debug('Initiating connection to {} port {}'.format(ip_addr, port_num))
 			self.sock.connect(server_address)
 			self.logger.info('Connected to {} port {}'.format(ip_addr, port_num))
 			return True
@@ -72,7 +71,7 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 		# while action != 0:
 		while True:
 			try:
-				resultList = out2ServerQ.get()
+				resultList = out2ServerQ.get() # will be in blocking state until Queue is not empty
 				self.logger.debug('resultList: {}'.format(resultList))
 			finally:
 				# print('in action')
@@ -94,12 +93,12 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 				# voltage = float(columns[2][len(columns[2])-1])
 				action = resultList[0]
 				voltage = resultList[1]/100
-				current = resultList[2]/100
+				current = resultList[2]/1000
 				prediction_count = resultList[3]
 				self.logger.debug('output from resultList: {} {} {} {}'.format(action,voltage,current, prediction_count))
 				if prediction_count != self.count:
 					self.logger.warn('Incorrect sequence! expected prediction count: {}, received: {}'.format(prediction_count, self.count))
-				self.count = prediction_count
+				self.count = prediction_count # wouldn't this defeat the purpose of checking their count? they shouldn't be dependent on each other?
 
 				# Necessary to prevent overflow of msg from being flooded to encrypt
 				time.sleep(1)

@@ -6,20 +6,12 @@ import csv
 import sys
 import struct
 import logging
-import pandas as pd
 
 class serialPiMgr ():
 	def __init__(self):
-
 		self.name = "serialPi"
 		self.logger = logging.getLogger(self.name)
 		self.logger.info('Initializing {} ({})'.format(self.name,__file__))
-		self.columns = ['acc1x', 'acc1y', 'acc1z',
-			'acc2x', 'acc2y', 'acc2z',
-			'acc3x', 'acc3y', 'acc3z',
-			'curr', 'volt']
-		self.df = pd.DataFrame(columns=self.columns)
-		self.df = self.df.set_index('acc1x')
 		self.SERIAL_PORT = '/dev/ttyAMA0'
 		self.CSV_DIR = 'data/mega_data.csv'
 
@@ -42,7 +34,6 @@ class serialPiMgr ():
 
 		#instantiate serial
 		try:
-			self.logger.info('Initializing serial interface')
 			self.ser = serial.Serial(self.SERIAL_PORT,self.BAUDRATE)
 		except serial.serialutil.SerialException:
 			self.logger.critical('Unable to open serial port: {}'.format(self.SERIAL_PORT))
@@ -51,6 +42,7 @@ class serialPiMgr ():
 			self.logger.critical('Exception occured: {}'.format(e))
 			return False
 		finally:
+			self.logger.info('Serial interface initialized')
 			return True
 
 
@@ -72,16 +64,16 @@ class serialPiMgr ():
 		    self.hasReplied = False
 		    while(not self.hasReplied):
 		        #1. send a handshake
-		        self.logger.info('Sending handshake to arduino')
+		        self.logger.debug('Sending handshake to arduino')
 		        self.ser.write(self.HANDSHAKE_PKT)
 		        #2. wait for input then check
 		        time.sleep(1)
-		        self.logger.info('Waiting for acknowledgement from arduino')
+		        self.logger.debug('Waiting for acknowledgement from arduino')
 		        bytesToRead = self.ser.inWaiting()
 		        response = self.ser.read(bytesToRead)
 		        #3. send an ACK if right
 		        if response == self.ACK_PKT:
-		            self.logger.info('Acknowledgement received')
+		            self.logger.info('Acknowledgement received from Arduino')
 		            self.hasReplied = True
 		            self.ser.write(self.ACK_PKT)
 		        else:
@@ -146,6 +138,7 @@ class serialPiMgr ():
 		    #self.logger.debug('data collected: {}'.format(count))
 
 		#All done
+		self.logger.warn('Closing serial interface')
 		self.ser.close()
 		self.logger.info('Exiting {}'.format(__file__))
 		sys.exit()

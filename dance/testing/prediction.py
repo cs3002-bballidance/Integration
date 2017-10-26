@@ -40,8 +40,7 @@ class predictionMgr():
 		self.COUNT = 0
 
 
-	def status(self):
-		self.logger.info('status: True')
+	def status(self): #dummy function. Do not remove
 		return True
 
 
