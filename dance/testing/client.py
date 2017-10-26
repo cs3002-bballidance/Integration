@@ -69,7 +69,7 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 
 	def run(self, out2ServerQ):
 		# Send data until logout action is recieved
-		while action != 11:
+		while self.action != 11:
 		#while True:
 			try:
 				resultList = out2ServerQ.get() # will be in blocking state until Queue is not empty
@@ -92,11 +92,11 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 				# action = int(columns[0][len(columns[0])-1])
 				# current = float(columns[1][len(columns[1])-1])
 				# voltage = float(columns[2][len(columns[2])-1])
-				action = resultList[0]
+				self.action = resultList[0]
 				voltage = resultList[1]/100
 				current = resultList[2]/1000
 				prediction_count = resultList[3]
-				self.logger.debug('output from resultList: {} {} {} {}'.format(action,voltage,current, prediction_count))
+				self.logger.debug('output from resultList: {} {} {} {}'.format(self.action,voltage,current, prediction_count))
 				if prediction_count != self.count:
 					self.logger.warn('Incorrect sequence! expected prediction count: {}, received: {}'.format(prediction_count, self.count))
 				self.count = self.count + 1 # wouldn't this defeat the purpose of checking their count? they shouldn't be dependent on each other?
@@ -114,7 +114,7 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 				self.cumulativepower_list_avg = float(sum(self.cumulativepower_list) / len(self.cumulativepower_list))
 
 				#1b. Assemble message
-				msg = b'#' + b'|'.join([self.actions[action].encode(), voltage_str.encode(), current_str.encode(), power_str.encode(), str(self.cumulativepower_list_avg).encode()]) + b'|'
+				msg = b'#' + b'|'.join([self.actions[self.action].encode(), voltage_str.encode(), current_str.encode(), power_str.encode(), str(self.cumulativepower_list_avg).encode()]) + b'|'
 				self.logger.debug('count: {}, unencrypted msg: {}'.format(self.count, msg))
 
 				#2. Encrypt readings
