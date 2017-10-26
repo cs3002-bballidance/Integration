@@ -68,10 +68,8 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 
 	def run(self, out2ServerQ):
 		# Send data until logout action is recieved
-		#while action != 11:
-	while True:
-		while self.action != 11:
-		#while True:
+		#while self.action != 11:
+		while True:
 			try:
 				resultList = out2ServerQ.get() # will be in blocking state until Queue is not empty
 				self.logger.debug('resultList: {}'.format(resultList))
