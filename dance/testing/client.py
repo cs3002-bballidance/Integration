@@ -114,7 +114,7 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 
 				#1b. Assemble message
 				msg = b'#' + b'|'.join([self.actions[action].encode(), voltage_str.encode(), current_str.encode(), power_str.encode(), str(self.cumulativepower_list_avg).encode()]) + b'|'
-				self.logger.debug('count: {}, unencrypted msg: {}'.format(count, msg))
+				self.logger.debug('count: {}, unencrypted msg: {}'.format(self.count, msg))
 
 				#2. Encrypt readings
 				#2a. Apply padding
