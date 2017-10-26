@@ -46,8 +46,9 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 		# ===================================================
 
 		# List of actions available
-		self.actions = ['logout  ', 'wavehands', 'busdriver', 'frontback', 'sidestep', 'jumping',
-						'jumpingjack', 'turnclap', 'squatturnclap', 'windowcleaning', 'windowcleaner360']
+		self.actions = ['', 'wavehands', 'busdriver', 'frontback', 'sidestep', 'jumping',
+						'jumpingjack', 'turnclap', 'squatturnclap', 'windowcleaning', 'windowcleaner360'
+						'logout  ']
 		self.action = ''
 		self.cumulativepower_list = []
 		self.cumulativepower_list_avg = 0
@@ -68,8 +69,8 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 
 	def run(self, out2ServerQ):
 		# Send data until logout action is recieved
-		# while action != 0:
-		while True:
+		while action != 11:
+		#while True:
 			try:
 				resultList = out2ServerQ.get() # will be in blocking state until Queue is not empty
 				self.logger.debug('resultList: {}'.format(resultList))
