@@ -13,7 +13,6 @@ class clientMgr():
 		self.name = 'piSocket'
 		self.logger = logging.getLogger(self.name)
 		self.KEY_DIR = '/mnt/normalStorage/.key'
-		self.count = 1
 
 		# Create TCP/IP socket
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -69,8 +68,8 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 
 	def run(self, out2ServerQ):
 		# Send data until logout action is recieved
-		while action != 11:
-		#while True:
+		#while action != 11:
+	while True:
 			try:
 				resultList = out2ServerQ.get() # will be in blocking state until Queue is not empty
 				self.logger.debug('resultList: {}'.format(resultList))
@@ -95,12 +94,7 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 				action = resultList[0]
 				voltage = resultList[1]/100
 				current = resultList[2]/1000
-				prediction_count = resultList[3]
-				self.logger.debug('output from resultList: {} {} {} {}'.format(action,voltage,current, prediction_count))
-				if prediction_count != self.count:
-					self.logger.warn('Incorrect sequence! expected prediction count: {}, received: {}'.format(prediction_count, self.count))
-				self.count = self.count + 1 # wouldn't this defeat the purpose of checking their count? they shouldn't be dependent on each other?
-
+				self.logger.debug('output from resultList: {} {} {} {}'.format(action,voltage,current))
 				# Necessary to prevent overflow of msg from being flooded to encrypt
 				#time.sleep(1)
 
@@ -115,7 +109,7 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 
 				#1b. Assemble message
 				msg = b'#' + b'|'.join([self.actions[action].encode(), voltage_str.encode(), current_str.encode(), power_str.encode(), str(self.cumulativepower_list_avg).encode()]) + b'|'
-				self.logger.debug('count: {}, unencrypted msg: {}'.format(self.count, msg))
+				self.logger.debug('unencrypted msg: {}'.format(msg))
 
 				#2. Encrypt readings
 				#2a. Apply padding

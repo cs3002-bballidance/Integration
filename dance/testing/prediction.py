@@ -179,7 +179,7 @@ class predictionMgr():
 		self.MEAN_CURRENT = power_data[1]
 		self.SEND_TO_SERVER = True
 		self.logger.info("Count: {} Results: {} {} {}".format(self.COUNT, self.RESULT, self.MEAN_VOLTAGE, self.MEAN_CURRENT))
-		results = [self.RESULT, self.MEAN_VOLTAGE, self.MEAN_CURRENT, self.COUNT]
+		results = [self.RESULT, self.MEAN_VOLTAGE, self.MEAN_CURRENT]
 		self.COUNT = self.COUNT + 1
 		return results
 		# with open(self.RESULT_DATAPATH, 'w') as csvfile:
