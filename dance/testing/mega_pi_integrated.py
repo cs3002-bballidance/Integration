@@ -148,6 +148,13 @@ def main():
 	logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',level=logging.DEBUG)
 	logger = logging.getLogger("serialPi")
 	logger.warn('You should initiate this script as a module')
+
+	# for testing
+	serialPiHandler = serialPiMgr()
+	init_result = serialPiHandler.run()
+	logger.debug('init_result: {}'.format(init_result))
+	serialPiHandler.sensorCollection()
+
 	sys.exit(1)
 
 if __name__ == '__main__':

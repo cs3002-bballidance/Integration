@@ -135,9 +135,11 @@ def createClient(ip_addr, port_num):
 
 
 def main():
+	logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',level=logging.DEBUG)
 	logger = logging.getLogger('piClient')
-	logger.info('Starting {}'.format(__file__))
+	logger.warn('You should initiate this script as a module')
 
+	# for testing
 	if len(sys.argv) != 3:
 	        logger.critical('Invalid number of arguments')
 	        #print('python client.py [IP address] [Port]')
@@ -147,12 +149,14 @@ def main():
 	port_num = int(sys.argv[2])
 
 	try:
-		my_client = client.clientMgr()
-		my_client = client(ip_addr, port_num, statusQ)
+		my_client = clientMgr()
+		my_client.client(ip_addr, port_num, statusQ)
 	#except TimeoutError:
 	#	logger.critical('Timeout error on connection to server')
 	except Exception as e:
 		logger.critical('Exception occured on connection to server: {}'.format(e))
+
+	sys.exit(1)
 
 
 if __name__ == '__main__':

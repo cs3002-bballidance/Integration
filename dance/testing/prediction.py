@@ -4,6 +4,7 @@ import client
 import sys
 import pandas as pd
 import numpy as np
+import multiprocessing as mp
 import butterworth
 from collections import deque
 from io import StringIO
@@ -19,7 +20,7 @@ class predictionMgr():
 		self.logger.info('Initializing {} ({})'.format(self.name,__file__))
 
 		self.DATAPATH = 'data/mega_data.csv' #mega_data.csv
-		self.RESULT_DATAPATH = 'data/results.csv'
+		# self.RESULT_DATAPATH = 'data/results.csv'
 		self.MODELPATH = 'data/trained_nn_model.h5'
 		self.SAMPLING_RATE = 50
 		self.WINDOW_SIZE = 2
@@ -200,6 +201,12 @@ def main():
 	logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',level=logging.DEBUG)
 	logger = logging.getLogger('dancePrediction')
 	logger.warn('You should initiate this script as a module')
+
+	# for testing
+	output = mp.Queue()
+	piPredictionHandler = predictionMgr()
+	piPredictionHandler.run(output)
+
 	sys.exit(1)
 
 
