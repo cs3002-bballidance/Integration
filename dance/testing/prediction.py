@@ -24,8 +24,8 @@ class predictionMgr():
 		self.SAMPLING_RATE = 50
 		self.WINDOW_SIZE = 2
 		self.WINDOW_READINGS = int(self.WINDOW_SIZE * self.SAMPLING_RATE)
-		self.WAITING_TIME = 1.5 #50% OVERLAPPING
-		self.PREDICTION_THRESHOLD = 0.9
+		self.WAITING_TIME = 1.75 #50% OVERLAPPING
+		self.PREDICTION_THRESHOLD = 0.85
 		self.NATURAL_MOVE = 0
 		self.CLOSING_MOVE = 11
 
@@ -70,7 +70,7 @@ class predictionMgr():
 
 	def get_data(self, filename, numlines):
 		size = sum(1 for l in open(filename))
-		#self.logger.debug("file size: {}".format(size))
+		self.logger.debug("file size: {}".format(size))
 		data = pd.read_csv(filename, nrows=numlines, skiprows=range(0, size-numlines-1))
 		return data.iloc[:, 0:9], data.iloc[:, 9:11]
 

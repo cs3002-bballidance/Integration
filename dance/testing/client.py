@@ -12,7 +12,7 @@ class clientMgr():
 	def __init__(self):
 		self.name = 'piSocket'
 		self.logger = logging.getLogger(self.name)
-		self.KEY_DIR = '/mnt/normalStorage/.key'
+		self.KEY_DIR = 'key'
 
 		# Create TCP/IP socket
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
