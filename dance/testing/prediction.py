@@ -24,8 +24,8 @@ class predictionMgr():
 		self.SAMPLING_RATE = 50
 		self.WINDOW_SIZE = 2
 		self.WINDOW_READINGS = int(self.WINDOW_SIZE * self.SAMPLING_RATE)
-		self.WAITING_TIME = 1.45 #50% OVERLAPPING
-		self.PREDICTION_THRESHOLD = 0.85
+		self.WAITING_TIME = 1.5 #50% OVERLAPPING
+		self.PREDICTION_THRESHOLD = 0.9
 		self.NATURAL_MOVE = 0
 		self.CLOSING_MOVE = 11
 
@@ -178,8 +178,8 @@ class predictionMgr():
 		self.MEAN_VOLTAGE = power_data[0]
 		self.MEAN_CURRENT = power_data[1]
 		self.SEND_TO_SERVER = True
-		self.logger.info("Count: {} Results: {} {} {}".format(self.COUNT, self.RESULT, self.MEAN_VOLTAGE, self.MEAN_CURRENT))
-		results = [self.RESULT, self.MEAN_VOLTAGE, self.MEAN_CURRENT]
+		self.logger.info("Count: {} Results: {} {} {}".format(self.COUNT, self.RESULT, self.MEAN_CURRENT, self.MEAN_VOLTAGE))
+		results = [self.RESULT, self.MEAN_CURRENT, self.MEAN_VOLTAGE]
 		self.COUNT = self.COUNT + 1
 		return results
 		# with open(self.RESULT_DATAPATH, 'w') as csvfile:
