@@ -70,7 +70,7 @@ class predictionMgr():
 
 	def get_data(self, filename, numlines):
 		size = sum(1 for l in open(filename))
-		#self.logger.debug("file size: {}".format(size))
+		self.logger.debug("file size: {}".format(size))
 		data = pd.read_csv(filename, nrows=numlines, skiprows=range(0, size-numlines-1))
 		return data.iloc[:, 0:9], data.iloc[:, 9:11]
 
