@@ -4,6 +4,7 @@ import client
 import sys
 import pandas as pd
 import numpy as np
+import multiprocessing as mp
 import butterworth
 from collections import deque
 from io import StringIO
@@ -200,6 +201,12 @@ def main():
 	logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',level=logging.DEBUG)
 	logger = logging.getLogger('dancePrediction')
 	logger.warn('You should initiate this script as a module')
+
+	# for testing
+	output = mp.Queue()
+	piPredictionHandler = predictionMgr()
+	piPredictionHandler.run(output)
+
 	sys.exit(1)
 
 
