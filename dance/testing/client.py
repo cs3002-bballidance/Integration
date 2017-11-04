@@ -1,6 +1,8 @@
 from collections import defaultdict
 from Crypto import Random
 from Crypto.Cipher import AES
+
+import codecs
 import csv
 import logging
 import base64
@@ -18,40 +20,22 @@ class clientMgr():
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 		# Obtain secret key from local key file
-		# TODO: Encode secret_key in key file then perform decode operations
 		try:
 			with open(self.KEY_DIR) as key:
-				self.secret_key = key.read()
-				key.closed
-				self.logger.debug("Keyfile found: {}".format(self.secret_key))
+                                self.secret_key = codecs.decode(key.read(), 'rot13')
+                                key.closed
+                                self.logger.debug("Keyfile found: {}".format(self.secret_key))
 		except Exception as e:
 			self.logger.critical('Exception on reading key: {}'.format(e))
 			sys.exit(1)
-		# ===================================================
-		# Uncomment this section for Raspberry Pi integration
-		# Obtain secret key from thumbdrive in Raspberry Pi
-		'''
-
-self.KEY_DIR = '/script/Production/dance/testing/'
-self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
-		for root, dirs, files in os.walk(self.KEY_DIR):
-			if 'key' in files:
-				if os.access(join(root, 'key'), os.R_OK):
-					with open(join(root, 'key')) as key:
-						secret_key = key.read()
-						key.closed
-						break
-		'''
-		# ===================================================
 
 		# List of actions available
 		self.actions = ['', 'wavehands', 'busdriver', 'frontback', 'sidestep', 'jumping',
-						'jumpingjack', 'turnclap', 'squatturnclap', 'windowcleaning', 'windowcleaner360'
-						'logout  ']
+				'jumpingjack', 'turnclap', 'squatturnclap', 'windowcleaning', 'windowcleaner360'
+				'logout  ']
 		self.action = 0
 		self.cumulativepower_list = []
 		self.cumulativepower_list_avg = 0
-
 
 	def conn(self, ip_addr, port_num, out2ServerQ):
 		# Connect to server
@@ -65,38 +49,18 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 			self.logger.critical('Exception occured: {}'.format(e))
 			return False
 
-
 	def run(self, out2ServerQ):
 		# Send data until logout action is recieved
-		#while self.action != 11:
-		while True:
+		while self.action != 11:
 			try:
 				resultList = out2ServerQ.get() # will be in blocking state until Queue is not empty
 				self.logger.debug('resultList: {}'.format(resultList))
 			finally:
-				# print('in action')
 				#1. Get action, current and voltage from prediction.py
-				# TODO: Check if file has changed since previous results if not wait until new file exists
-				# columns = defaultdict(list)
-
-				# try:
-				# 	with open(self.RESULTS_DIR, newline='') as csvfile:
-				# 		predicted_results = csv.reader(csvfile, delimiter=',', quotechar='|')
-				# 		for row in predicted_results:
-				# 			for(col,val) in enumerate(row):
-				# 				columns[col].append(val)
-				# except Exception as e:
-				# 	self.logger.critical('Exception occured on reading results.csv: {}'.format(e))
-				#
-				# action = int(columns[0][len(columns[0])-1])
-				# current = float(columns[1][len(columns[1])-1])
-				# voltage = float(columns[2][len(columns[2])-1])
 				self.action = resultList[0]
 				voltage = resultList[1]/100
 				current = resultList[2]/1000
 				self.logger.debug('output from resultList: {} {} {}'.format(self.action,voltage,current))
-				# Necessary to prevent overflow of msg from being flooded to encrypt
-				#time.sleep(1)
 
 				#1a. Calculates average power since first reading
 				power = voltage * current
@@ -125,14 +89,12 @@ self.RESULTS_DIR = 'data/results.csv'	secret_key = ' '
 				self.logger.info('Sending data to server')
 				self.sock.sendall(encodedMsg)
 
-			#4. All done, logout.
-			# self.sock.close()
-			# sys.exit()
-
+		#4. All done, logout.
+		self.sock.close()
+		sys.exit()
 
 def createClient(ip_addr, port_num):
 	myclient = client(ip_addr, port_num)
-
 
 def main():
 	logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',level=logging.DEBUG)
@@ -157,7 +119,6 @@ def main():
 		logger.critical('Exception occured on connection to server: {}'.format(e))
 
 	sys.exit(1)
-
 
 if __name__ == '__main__':
 	main()
