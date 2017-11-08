@@ -21,11 +21,11 @@ class predictionMgr():
 
 		self.DATAPATH = 'data/mega_data.csv' #mega_data.csv
 		self.RESULT_DATAPATH = 'data/results.csv'
-		self.MODELPATH = 'data/trained_nn_model.h5'
+		self.MODELPATH = 'data/trained_cnn_model.h5'
 		self.SAMPLING_RATE = 50
-		self.WINDOW_SIZE = 2
+		self.WINDOW_SIZE = 2.5
 		self.WINDOW_READINGS = int(self.WINDOW_SIZE * self.SAMPLING_RATE)
-		self.WAITING_TIME = 1.75 #50% OVERLAPPING
+		self.WAITING_TIME = 1.4
 		self.PREDICTION_THRESHOLD = 0.85
 		self.NATURAL_MOVE = 0
 		self.CLOSING_MOVE = 11
@@ -64,7 +64,7 @@ class predictionMgr():
 					results = self.prepare_results(results, power_data)
 					out2ServerQ.put(results)
 					self.logger.debug("out2ServerQ contents: {}".format(results))
-					sleep(self.WAITING_TIME)
+					sleep(self.WINDOW_SIZE)
 			except Exception as e:
 				self.logger.critical('Exception occured: {}'.format(e))
 
