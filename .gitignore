@@ -1,5 +1,7 @@
 pythonenv/
-data/
 __pycache__/
+data/
+dance/testing/log/
+pythonEnv/
 *.log
 *.csv

@@ -4,6 +4,7 @@ import client
 import sys
 import pandas as pd
 import numpy as np
+import multiprocessing as mp
 import butterworth
 from collections import deque
 from io import StringIO
@@ -24,7 +25,7 @@ class predictionMgr():
 		self.SAMPLING_RATE = 50
 		self.WINDOW_SIZE = 2
 		self.WINDOW_READINGS = int(self.WINDOW_SIZE * self.SAMPLING_RATE)
-		self.WAITING_TIME = 1.45 #50% OVERLAPPING
+		self.WAITING_TIME = 1.75 #50% OVERLAPPING
 		self.PREDICTION_THRESHOLD = 0.85
 		self.NATURAL_MOVE = 0
 		self.CLOSING_MOVE = 11
@@ -200,6 +201,12 @@ def main():
 	logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',level=logging.DEBUG)
 	logger = logging.getLogger('dancePrediction')
 	logger.warn('You should initiate this script as a module')
+
+	# for testing
+	output = mp.Queue()
+	piPredictionHandler = predictionMgr()
+	piPredictionHandler.run(output)
+
 	sys.exit(1)
 
 
