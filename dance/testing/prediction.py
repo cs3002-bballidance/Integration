@@ -23,9 +23,9 @@ class predictionMgr():
 		self.RESULT_DATAPATH = 'data/results.csv'
 		self.MODELPATH = 'data/trained_cnn_model.h5'
 		self.SAMPLING_RATE = 50
-		self.WINDOW_SIZE = 2.5
+		self.WINDOW_SIZE = 2.4
 		self.WINDOW_READINGS = int(self.WINDOW_SIZE * self.SAMPLING_RATE)
-		self.WAITING_TIME = 1.4
+		self.WAITING_TIME = 1.5
 		self.PREDICTION_THRESHOLD = 0.85
 		self.NATURAL_MOVE = 0
 		self.CLOSING_MOVE = 11
