@@ -203,8 +203,8 @@ class predictionMgr():
 
 
 	def send_server(self):
-		#result, mean voltage, mean current`
-		return self.RESULT, self.MEAN_VOLTAGE, self.MEAN_CURRENT
+		#result, mean current, mean voltage `
+		return self.RESULT, self.MEAN_CURRENT, self.MEAN_VOLTAGE
 
 	#
 	# def init(self, modelname):
