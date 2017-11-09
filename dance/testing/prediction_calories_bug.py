@@ -9,6 +9,7 @@ import butterworth
 from collections import deque
 from io import StringIO
 from time import sleep
+from timeit import default_timer
 from scipy.stats import kurtosis, skew
 from keras.models import load_model
 from keras.models import Sequential
@@ -51,6 +52,7 @@ class predictionMgr():
 		sleep(self.WINDOW_SIZE)
 		while True:
 			try:
+				start_time = default_timer()
 				sleep(self.WAITING_TIME)
 				data, power_data = self.get_data(self.DATAPATH, self.WINDOW_READINGS)
 				#with pd.option_context('display.max_rows', None, 'display.max_columns', 3):
@@ -60,11 +62,23 @@ class predictionMgr():
 				X = self.reshape_data(filtered_data)
 				y = self.model.predict(X)
 				is_result_good, results = self.check_results(y)
+
+				#burn calories here
+				#stop_time = default_timer()
+				#elasped_time = stop_time - start_time
+				#total_elasped_time += elasped_time
+
+				# MET * Weight (kg) = Calories per Hour
+				# dancing (code 03015 - aerobic, general) calculates to about 7.3 MET
+				#calories = (7.3 * 65) / (total_elasped_time / 3600)
+				
 				if is_result_good:
 					results = self.prepare_results(results, power_data)
 					out2ServerQ.put(results)
 					self.logger.debug("out2ServerQ contents: {}".format(results))
+					self.logger.debug('calories burned so far: {}'.format(calories))
 					sleep(self.WINDOW_SIZE)
+
 			except Exception as e:
 				self.logger.critical('Exception occured: {}'.format(e))
 
@@ -189,7 +203,7 @@ class predictionMgr():
 
 
 	def send_server(self):
-		#result, mean current, mean voltage
+		#result, mean current, mean voltage `
 		return self.RESULT, self.MEAN_CURRENT, self.MEAN_VOLTAGE
 
 	#
