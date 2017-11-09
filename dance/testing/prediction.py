@@ -48,10 +48,10 @@ class predictionMgr():
 	def run(self, out2ServerQ):
 		self.model = self.get_model(self.MODELPATH)
 		# model = init(self.MODELPATH)
-		sleep(self.WINDOW_SIZE)
+		#sleep(self.WINDOW_SIZE)
 		while True:
 			try:
-				sleep(self.WAITING_TIME)
+				sleep(self.WINDOW_SIZE)
 				data, power_data = self.get_data(self.DATAPATH, self.WINDOW_READINGS)
 				#with pd.option_context('display.max_rows', None, 'display.max_columns', 3):
 					#logger.debug(data)
@@ -64,7 +64,7 @@ class predictionMgr():
 					results = self.prepare_results(results, power_data)
 					out2ServerQ.put(results)
 					self.logger.debug("out2ServerQ contents: {}".format(results))
-					sleep(self.WINDOW_SIZE)
+					sleep(self.WAITING_TIME)
 			except Exception as e:
 				self.logger.critical('Exception occured: {}'.format(e))
 
