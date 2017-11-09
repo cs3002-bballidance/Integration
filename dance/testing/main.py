@@ -12,7 +12,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 	#supress debugging output
 
-SERVER_IP = '172.17.54.37'
+SERVER_IP = '172.17.54.33'
 SERVER_PORT = 8888
 
 
