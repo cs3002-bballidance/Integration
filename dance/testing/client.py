@@ -30,7 +30,7 @@ class clientMgr():
 
         # List of actions available
         self.actions = ['', 'wavehands', 'busdriver', 'frontback', 'sidestep', 'jumping',
-                'jumpingjack', 'turnclap', 'squatturnclap', 'windowcleaning', 'windowcleaner360'
+                'jumpingjack', 'turnclap', 'squatturnclap', 'windowcleaning', 'windowcleaner360',
                 'logout  ']
         self.action = 0
         self.cumulativepower_list = []
