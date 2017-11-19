@@ -24,8 +24,10 @@
 - tensorflow
 - RPi.GPIO  
 
-
+##### Power Distribution & IO Hub  
 ![PD & IO hub](images/power-distribution_IO-hub.jpg)  
+
+##### Embedded System Setup
 ![v2 setup image](images/v2_setup.jpg)
 
 ##### Contributors  
